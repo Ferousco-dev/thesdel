@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 import heroStudent1 from "../assets/hero-student-1.png";
 import heroStudent2 from "../assets/hero-student-2.png";
@@ -648,22 +649,58 @@ export function LandingPage() {
         </section>
 
         <section id="pricing" className="bg-slate-50 px-4 pb-24 sm:px-6">
-          <div className="mx-auto max-w-5xl rounded-3xl bg-violet-600 px-8 py-12 text-center shadow-sm md:py-16">
-            <h2 className="text-3xl font-bold tracking-tight text-white">
-              Unlock Your Full Learning Potential With Thesdel
+          <div className="mx-auto max-w-5xl text-center">
+            <span className="inline-block rounded-full bg-violet-50 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-violet-600">
+              Pricing
+            </span>
+            <h2 className="mx-auto mt-4 max-w-2xl text-3xl font-bold leading-tight tracking-tight text-slate-900 md:text-4xl">
+              Free stays free. Paid tier pricing is coming soon.
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-violet-100 sm:text-base">
-              Join Thesdel today and experience transformative, personalized
-              learning through our innovative AI-driven platform. Empower your
-              learning journey and take the next step toward success.
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-slate-500 sm:text-base">
+              We're finalizing Premium and Pro pricing per country before launch. You'll see the
+              exact price for your account before you're ever asked to pay anything.
             </p>
-            <a
-              href="#contact"
-              className="mt-8 inline-block rounded-full bg-slate-50 px-8 py-3.5 text-sm font-bold text-violet-600 transition hover:bg-violet-50 hover:shadow-md"
-            >
-              Start 14 Days Free Trial
-            </a>
           </div>
+
+          <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="rounded-3xl border border-violet-100 bg-violet-50/60 p-8">
+              <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500">Free</h3>
+              <p className="mt-2 text-3xl font-bold text-slate-900">$0</p>
+              <ul className="mt-6 space-y-3 text-sm leading-relaxed text-slate-600">
+                <li>Timetable creation, import, and view</li>
+                <li>Join or create a class, see updates</li>
+                <li>A banner ad — never inside the timetable itself</li>
+              </ul>
+            </div>
+            <div className="rounded-3xl border-2 border-violet-600 bg-slate-50 p-8 shadow-md">
+              <h3 className="text-sm font-bold uppercase tracking-wide text-violet-600">
+                Premium
+              </h3>
+              <p className="mt-2 text-2xl font-bold text-slate-900">Coming soon</p>
+              <ul className="mt-6 space-y-3 text-sm leading-relaxed text-slate-600">
+                <li>Everything in Free</li>
+                <li>Litheral study plan generation</li>
+                <li>No ads</li>
+              </ul>
+            </div>
+            <div className="rounded-3xl border border-violet-100 bg-violet-50/60 p-8">
+              <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500">Pro</h3>
+              <p className="mt-2 text-2xl font-bold text-slate-900">Coming soon</p>
+              <ul className="mt-6 space-y-3 text-sm leading-relaxed text-slate-600">
+                <li>Everything in Premium</li>
+                <li>Full life schedule, routines, conflict flags</li>
+                <li>Custom accent color</li>
+              </ul>
+            </div>
+          </div>
+
+          <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-slate-400">
+            Want to know when Premium and Pro pricing lands in your country?{" "}
+            <Link to="/contact" className="font-semibold text-violet-600 hover:text-violet-700">
+              Get in touch
+            </Link>
+            .
+          </p>
         </section>
       </main>
 

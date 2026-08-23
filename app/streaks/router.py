@@ -1,5 +1,7 @@
 from fastapi import APIRouter, status
 
+from app.shared.db import get_db
+from app.shared.deps import CurrentUserDep
 from app.streaks.schemas import (
     CheckInResult,
     StreakAcceptRequest,
@@ -8,8 +10,6 @@ from app.streaks.schemas import (
     StreakPublic,
 )
 from app.streaks.service import StreakService
-from app.shared.db import get_db
-from app.shared.deps import CurrentUserDep
 
 router = APIRouter(prefix="/v1/streaks", tags=["streaks"])
 
@@ -40,4 +40,6 @@ async def list_my_streaks(user: CurrentUserDep) -> list[StreakPublic]:
 
 @router.get("/{partner_user_id}", response_model=StreakPublic)
 async def get_streak_with_partner(partner_user_id: str, user: CurrentUserDep) -> StreakPublic:
-    return await _service().get_with_partner(current_user_id=user.id, partner_user_id=partner_user_id)
+    return await _service().get_with_partner(
+        current_user_id=user.id, partner_user_id=partner_user_id
+    )

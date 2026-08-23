@@ -23,13 +23,13 @@ from bson.errors import InvalidId
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.progression.service import ProgressionService
+from app.shared.errors import ConflictError, ForbiddenError, NotFoundError, ValidationAppError
 from app.streaks.repository import (
     PartnerStreakRepository,
     StreakUserLookupRepository,
     normalize_pair,
 )
 from app.streaks.schemas import CheckInResult, StreakPublic
-from app.shared.errors import ConflictError, ForbiddenError, NotFoundError, ValidationAppError
 
 STALE_WINDOW = timedelta(hours=48)
 

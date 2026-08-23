@@ -7,6 +7,12 @@ import { ClassesPage } from "./routes/ClassesPage";
 import { LandingPage } from "./routes/LandingPage";
 import { LitheralPage } from "./routes/LitheralPage";
 import { LoginPage } from "./routes/LoginPage";
+import { AboutPage } from "./routes/marketing/AboutPage";
+import { ContactPage } from "./routes/marketing/ContactPage";
+import { CookieSettingsPage } from "./routes/marketing/CookieSettingsPage";
+import { PrivacyPolicyPage } from "./routes/marketing/PrivacyPolicyPage";
+import { SupportPage } from "./routes/marketing/SupportPage";
+import { TermsOfServicePage } from "./routes/marketing/TermsOfServicePage";
 import { ProfilePage } from "./routes/ProfilePage";
 import { RootLayout } from "./routes/RootLayout";
 import { TimetablePage } from "./routes/TimetablePage";
@@ -25,6 +31,12 @@ export function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/support" element={<SupportPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsOfServicePage />} />
+        <Route path="/cookies" element={<CookieSettingsPage />} />
         <Route element={<RootLayout />}>
           <Route path="/timetable" element={<TimetablePage />} />
           <Route path="/classes" element={<ClassesPage />} />

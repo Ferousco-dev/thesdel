@@ -10,7 +10,9 @@ collection's shape.
 ```
 _id: ObjectId
 email: string, unique
-password_hash: string          # Argon2id
+password_hash: string | null   # Argon2id; null for a Google-only account
+                                # (see DECISIONS.md ADR-008) — login must
+                                # reject a password attempt against these
 email_verified_at: datetime | null
 display_name: string
 tier: "free" | "premium" | "pro"
@@ -23,6 +25,29 @@ is_verified: bool               # derived from active subscription, see billing
 created_at: datetime
 ```
 **Indexes:** unique on `email`.
+
+### `auth_tokens`
+Short-lived, single-use, hashed-at-rest tokens for email verification and
+password reset — see docs/SECURITY.md's authentication section (15–60 min
+TTL, single-use, rate-limited) and docs/DECISIONS.md ADR-010.
+```
+_id: ObjectId
+user_id: ObjectId -> users._id
+purpose: "email_verification" | "password_reset"
+token_hash: string, unique      # SHA-256 of the opaque token; never stored
+                                 # in plaintext (mirrors sessions.refresh_token_hash)
+created_at: datetime
+expires_at: datetime            # TTL-indexed for automatic cleanup
+used_at: datetime | null        # set on successful verify/reset, or when
+                                 # superseded by a newer token of the same purpose
+sent_at: datetime | null        # set once the ARQ email job has actually sent
+                                 # the message — idempotency marker for job retries
+```
+**Indexes:** unique on `token_hash` (named query pattern: token lookup by
+hash on verify/confirm); `(user_id, purpose)` (named query pattern:
+invalidating a user's earlier outstanding token of the same purpose when a
+new one is issued); TTL index on `expires_at` with `expireAfterSeconds=0`
+(automatic cleanup of expired tokens, same pattern as `sessions`).
 
 ### `classes`
 ```

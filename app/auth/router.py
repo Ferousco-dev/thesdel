@@ -3,12 +3,18 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request, status
 
 from app.auth.schemas import (
+    GenericSuccessResponse,
+    GoogleAuthRequest,
     LoginRequest,
     LogoutRequest,
+    PasswordResetConfirmRequest,
+    PasswordResetRequest,
     RefreshRequest,
     RegisterRequest,
+    ResendVerificationRequest,
     TokenPairResponse,
     UserPublic,
+    VerifyEmailRequest,
 )
 from app.auth.service import AuthService
 from app.shared.config import Settings, get_settings
@@ -23,14 +29,22 @@ def get_auth_service(settings: Annotated[Settings, Depends(get_settings)]) -> Au
     return AuthService(get_db(), settings)
 
 
-async def _rate_limit_auth_endpoint(request: Request, bucket: str) -> None:
+async def _rate_limit_auth_endpoint(
+    request: Request,
+    bucket: str,
+    *,
+    max_requests: int | None = None,
+    window_seconds: int | None = None,
+) -> None:
     settings = get_settings()
     client_ip = request.client.host if request.client else "unknown"
+    default_max = settings.rate_limit_login_max
+    default_window = settings.rate_limit_login_window_seconds
     await check_rate_limit(
         get_redis(),
         key=f"ratelimit:auth:{bucket}:{client_ip}",
-        max_requests=settings.rate_limit_login_max,
-        window_seconds=settings.rate_limit_login_window_seconds,
+        max_requests=max_requests if max_requests is not None else default_max,
+        window_seconds=window_seconds if window_seconds is not None else default_window,
         fail_closed=True,  # auth endpoints fail closed — see docs/ARCHITECTURE.md §7
     )
 
@@ -67,6 +81,20 @@ async def login(
     return LoginResponse(**tokens.model_dump(), user=user)
 
 
+@router.post("/google", response_model=LoginResponse)
+async def google_auth(
+    body: GoogleAuthRequest,
+    request: Request,
+    service: Annotated[AuthService, Depends(get_auth_service)],
+) -> LoginResponse:
+    # Same login-endpoint rate limit — this is a login path too, and a
+    # forged/expired-token brute-force attempt should be throttled the
+    # same way a password-guessing attempt is.
+    await _rate_limit_auth_endpoint(request, "google")
+    tokens, user = await service.google_login(id_token=body.id_token)
+    return LoginResponse(**tokens.model_dump(), user=user)
+
+
 @router.post("/refresh", response_model=TokenPairResponse)
 async def refresh(
     body: RefreshRequest,
@@ -83,3 +111,66 @@ async def logout(
     service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> None:
     await service.logout(body.refresh_token)
+
+
+@router.post("/verify-email", status_code=status.HTTP_200_OK)
+async def verify_email(
+    body: VerifyEmailRequest,
+    service: Annotated[AuthService, Depends(get_auth_service)],
+) -> dict[str, str]:
+    # Idempotent-success: already-verified is not an error — see
+    # AuthService.verify_email.
+    await service.verify_email(body.token)
+    return {"status": "verified"}
+
+
+@router.post("/resend-verification", response_model=GenericSuccessResponse)
+async def resend_verification(
+    body: ResendVerificationRequest,
+    request: Request,
+    service: Annotated[AuthService, Depends(get_auth_service)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> GenericSuccessResponse:
+    await _rate_limit_auth_endpoint(
+        request,
+        "resend_verification",
+        max_requests=settings.rate_limit_verification_max,
+        window_seconds=settings.rate_limit_verification_window_seconds,
+    )
+    await service.resend_verification(body.email)
+    return GenericSuccessResponse()
+
+
+@router.post("/password-reset/request", response_model=GenericSuccessResponse)
+async def request_password_reset(
+    body: PasswordResetRequest,
+    request: Request,
+    service: Annotated[AuthService, Depends(get_auth_service)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> GenericSuccessResponse:
+    await _rate_limit_auth_endpoint(
+        request,
+        "password_reset_request",
+        max_requests=settings.rate_limit_password_reset_max,
+        window_seconds=settings.rate_limit_password_reset_window_seconds,
+    )
+    # Always a generic success — enumeration-safe, see AuthService.request_password_reset.
+    await service.request_password_reset(body.email)
+    return GenericSuccessResponse()
+
+
+@router.post("/password-reset/confirm", status_code=status.HTTP_200_OK)
+async def confirm_password_reset(
+    body: PasswordResetConfirmRequest,
+    request: Request,
+    service: Annotated[AuthService, Depends(get_auth_service)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> dict[str, str]:
+    await _rate_limit_auth_endpoint(
+        request,
+        "password_reset_confirm",
+        max_requests=settings.rate_limit_password_reset_max,
+        window_seconds=settings.rate_limit_password_reset_window_seconds,
+    )
+    await service.confirm_password_reset(token=body.token, new_password=body.new_password)
+    return {"status": "reset"}

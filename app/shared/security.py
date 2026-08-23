@@ -12,9 +12,12 @@ from typing import Any
 import jwt
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+from google.auth.exceptions import GoogleAuthError
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token as google_id_token
 
 from app.shared.config import get_settings
-from app.shared.errors import TokenExpiredError, TokenInvalidError
+from app.shared.errors import TokenExpiredError, TokenInvalidError, UnauthenticatedError
 
 _hasher = PasswordHasher()
 
@@ -76,3 +79,26 @@ def decode_access_token(token: str) -> dict[str, Any]:
     if payload.get("type") != "access":
         raise TokenInvalidError()
     return payload
+
+
+def verify_google_id_token(token: str) -> dict[str, Any]:
+    """Verifies a Google Identity Services ID token: signature (against
+    Google's published public keys, fetched over HTTPS), expiry, issuer,
+    and audience (must match our own Client ID — this is what stops a
+    valid token issued to a *different* app from being replayed here).
+    See docs/DECISIONS.md ADR-011.
+    """
+    settings = get_settings()
+    try:
+        claims = google_id_token.verify_oauth2_token(
+            token, google_requests.Request(), settings.google_client_id
+        )
+    except (GoogleAuthError, ValueError) as exc:
+        raise UnauthenticatedError("Could not verify Google sign-in.") from exc
+
+    if claims.get("iss") not in ("accounts.google.com", "https://accounts.google.com"):
+        raise UnauthenticatedError("Could not verify Google sign-in.")
+    if not claims.get("email"):
+        raise UnauthenticatedError("Google did not provide an email address.")
+
+    return claims

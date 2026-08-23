@@ -12,14 +12,14 @@ from app.litheral.life.router import router as litheral_life_router
 from app.litheral.study.router import router as litheral_study_router
 from app.progression.router import router as progression_router
 from app.routines.router import router as routines_router
-from app.shared import db, redis_client
-from app.streaks.router import router as streaks_router
-from app.timetable.router import router as timetable_router
-from app.usage.router import router as usage_router
+from app.shared import db, jobs, redis_client
 from app.shared.config import get_settings
 from app.shared.errors import AppError
 from app.shared.logging import configure_logging, get_logger
 from app.shared.middleware import request_context_middleware
+from app.streaks.router import router as streaks_router
+from app.timetable.router import router as timetable_router
+from app.usage.router import router as usage_router
 from app.users.router import router as users_router
 
 configure_logging()
@@ -34,6 +34,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("app.shutdown")
     await db.close_client()
     await redis_client.close_redis()
+    await jobs.close_arq_pool()
 
 
 def create_app() -> FastAPI:

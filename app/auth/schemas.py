@@ -12,6 +12,12 @@ class LoginRequest(BaseModel):
     password: str = Field(min_length=1, max_length=128)
 
 
+class GoogleAuthRequest(BaseModel):
+    # An ID token from Google Identity Services (a signed JWT), not an
+    # access token or authorization code — see docs/DECISIONS.md ADR-011.
+    id_token: str = Field(min_length=1)
+
+
 class RefreshRequest(BaseModel):
     refresh_token: str
 
@@ -31,3 +37,27 @@ class UserPublic(BaseModel):
     email: EmailStr
     display_name: str
     tier: str
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str = Field(min_length=1)
+
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetConfirmRequest(BaseModel):
+    token: str = Field(min_length=1)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class GenericSuccessResponse(BaseModel):
+    """Deliberately identical regardless of whether the target email exists
+    — enumeration-safe, per docs/SECURITY.md §2."""
+
+    message: str = "If an account with that email exists, we've sent instructions."

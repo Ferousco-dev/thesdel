@@ -279,3 +279,146 @@ of `app/streaks/`.
   interaction model (e.g. multiple interaction types, partial credit,
   streak freezes/vacation days), that is a product/spec question to resolve
   before extending this, not something to guess at again.
+
+---
+
+## ADR-010: ARQ worker infrastructure, opaque-token TTLs, and reset-token storage shape
+
+**Status:** Accepted, first-pass.
+
+**Context:** `arq` was already a `pyproject.toml` dependency but no worker
+process, job registry, or docker-compose service existed. Building it
+required three judgment calls not pinned down elsewhere: (1) where the
+`arq` job registry/enqueue helpers and the actual worker entrypoint live,
+(2) the exact TTL for email-verification and password-reset opaque tokens
+(docs/SECURITY.md only states a 15–60 min range), and (3) how reset/
+verification tokens are stored.
+
+**Decisions:**
+1. **Module placement.** `app/shared/jobs.py` is a thin, dependency-free
+   registry: it owns the ARQ pool (against the same `redis_url` as the
+   rest of the app — no second Redis config) and exposes `enqueue_*`
+   helper functions other modules call by job *name*. It deliberately does
+   not import job *implementations* — that would make a shared module
+   depend on a feature module. `app/auth/jobs.py` owns the actual send
+   logic (idempotency check, retry/backoff, dead-letter) for the two jobs
+   this task needs, inside `app/auth/`'s existing boundary. `app/worker.py`
+   is the one place that imports both and wires them into `WorkerSettings`
+   — the `arq` entrypoint (`arq app.worker.WorkerSettings`) — analogous to
+   how `app/main.py` is the one place that imports every module's router.
+   `docker-compose.yml` gets a `worker` service: same image/build as `api`,
+   command overridden to run the ARQ worker instead of uvicorn.
+2. **Token TTL: 60 minutes for email verification, 30 minutes for password
+   reset.** Both within docs/SECURITY.md's 15–60 min range. Verification
+   gets the longer end since signup itself is never blocked on it (no
+   urgency, and mobile-first users may not check email immediately);
+   password reset gets a shorter, mid-range TTL since a live reset flow is
+   typically completed within minutes and a shorter window narrows the
+   attack surface for a leaked/guessed reset link.
+3. **Reset/verification token storage: one `auth_tokens` collection,
+   `purpose` field distinguishing "email_verification" from
+   "password_reset"**, rather than two separate collections or reusing
+   `sessions`. Mirrors `SessionRepository`'s already-established pattern
+   (opaque token, hashed at rest via the existing `hash_opaque_token`/
+   `generate_opaque_token` helpers in `app/shared/security.py`, single-use,
+   TTL-indexed) instead of inventing a second hashing/storage scheme. A
+   single collection with a `purpose` field was chosen over two collections
+   because the shape (user_id, token_hash, expiry, used_at) is identical
+   and a query pattern already needs `(user_id, purpose)` regardless — see
+   docs/DATABASE.md `auth_tokens`. Issuing a new token of a given purpose
+   invalidates (`used_at`-stamps) any earlier outstanding token of that
+   same purpose, so only the most recently issued link is ever valid.
+4. **Retry/idempotency, literally per docs/ARCHITECTURE.md §8:** each email
+   job checks the token document's `sent_at` marker before sending (a
+   retried, at-least-once-delivered job is a no-op if a previous attempt
+   already sent it) and retries with exponential backoff
+   (`2, 4, 8, 16, 32` seconds) up to 5 attempts before dead-lettering via a
+   structured error log — no new alerting infrastructure was built, per
+   task scope.
+5. **Enqueue failures never fail the calling request.** Per
+   docs/ARCHITECTURE.md §7, `enqueue_*` in `app/shared/jobs.py` catches any
+   exception, logs it, and returns — registration (and the other
+   request-triggering-an-email endpoints) succeed even if Redis has a
+   transient hiccup enqueuing the job.
+6. **Resend integration is a thin, dependency-free wrapper
+   (`app/shared/email.py`)** calling Resend's REST API directly via
+   `httpx` (already installed — see `Dockerfile`, which keeps it in the
+   production image) rather than adding the `resend` SDK package, per
+   RULES.md #17 ("never introduce an unnecessary dependency"). If
+   `resend_api_key` is unset (the local/test default), sending no-ops
+   instead of raising, so dev/test never hard-fails on a missing key.
+
+**Alternatives considered:**
+- A single `app/shared/jobs.py` owning both the registry and every job
+  implementation — rejected: as more modules gain background jobs, this
+  file would accumulate unrelated business logic across module
+  boundaries, exactly what RULES.md #19 ("never copy-paste business logic
+  across modules... respecting module import boundaries") warns against.
+- Reusing `sessions` for reset/verification tokens — rejected: different
+  lifecycle (single-use vs. rotated-on-use, much shorter TTL, no
+  `family_id`/reuse-detection concept), would overload one collection's
+  schema with two different concerns.
+- A single fixed TTL for both purposes — rejected: verification and reset
+  have different urgency/risk profiles (see decision 2), so a single value
+  would either be too short for a low-urgency verification email or too
+  long for a live, higher-stakes password-reset link.
+
+**Consequences:**
+- The worker must be run as its own process (`docker compose up` now
+  starts it as a `worker` service) — forgetting to run it means enqueued
+  emails simply sit in the ARQ queue until a worker process consumes them;
+  this doesn't fail any request, but should be checked in a deploy
+  checklist.
+- **Open follow-up (not built here):** the Backend Spec also mentions AI
+  generation jobs, push notifications, and scheduled cleanup as ARQ
+  consumers (docs/ARCHITECTURE.md §8) — those are separate, unbuilt
+  features with their own job-registration needs when the time comes, not
+  something to speculatively stub out here (RULES.md #23).
+
+---
+
+## ADR-011: Google Sign-In via ID-token verification, alongside email/password
+
+**Status:** Accepted (confirmed by user 2026-08-23)
+
+**Context:** Product wants "Sign in with Google" as an additional login
+option on top of the existing email/password + refresh-token flow
+(ADR-002), not a replacement for it.
+
+**Alternatives considered:**
+- Full OAuth 2.0 authorization-code flow (redirect to Google, exchange a
+  code for tokens server-side) — rejected for now: requires a client
+  secret and a redirect-URI dance that's more infrastructure than this
+  needs. Google Identity Services' ID-token flow (frontend gets a signed
+  JWT directly from Google, backend just verifies it) needs no client
+  secret and no server-side redirect handling, at the cost of only
+  working for "sign in," not broader Google API access — which is all
+  that's needed here.
+- Replacing email/password entirely — rejected per explicit product
+  direction; email/password (ADR-002) stays as-is, Google is additive.
+
+**Reason:** Matches the actual requirement (login, not broader Google API
+scopes) with the least new infrastructure. The backend's only new
+responsibility is verifying a token's signature, issuer, and audience
+against Google's public keys — `google-auth`'s `verify_oauth2_token`
+handles the key-fetching and signature check.
+
+**Consequences:**
+- `users.password_hash` is now nullable — a Google-only account has none.
+  `AuthService.login` explicitly rejects a password attempt on such an
+  account rather than passing `None` into `verify_password`.
+- `users.google_id` (Google's stable `sub` claim) is added, with a sparse
+  unique index — sparse because most accounts won't have one.
+- Account linking: if a Google sign-in's email matches an existing
+  password account, Google is linked to it automatically, but ONLY when
+  Google itself reports that email as verified (`email_verified` claim).
+  Skipping that check would let someone holding an unverified alias of
+  another person's email hijack that account via Google sign-in — this
+  guard is the entire reason `email_verified` is read from the claims at
+  all.
+- A Google-created account gets `email_verified_at` set immediately
+  (Google already verified it) — no verification email is sent for that
+  path, unlike registration via `AuthService.register`.
+- `GOOGLE_CLIENT_ID` is required config — the backend rejects a token
+  whose `aud` claim doesn't match it, which is what stops a valid ID
+  token issued to some *other* app from being replayed against this one.

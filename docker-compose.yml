@@ -19,6 +19,31 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # ARQ background-job worker — same image as `api`, different entrypoint
+  # command (Dockerfile's CMD is overridden here rather than duplicated).
+  # See docs/DECISIONS.md ADR-010 for the module-placement decision
+  # (app/shared/jobs.py hosts the enqueue registry; app/auth/jobs.py owns
+  # the auth module's job implementations; app/worker.py is the arq
+  # entrypoint wiring them together) and docs/ARCHITECTURE.md §8.
+  worker:
+    build:
+      context: .
+      target: dev
+    command: ["arq", "app.worker.WorkerSettings"]
+    env_file:
+      - .env
+    environment:
+      MONGO_URI: mongodb://mongo:27017/?replicaSet=rs0
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./app:/srv/app
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
   # MongoDB, run as a single-node replica set. Multi-document transactions
   # (used for class-join + member_count, see docs/DATABASE.md §3) require a
   # replica set — a plain standalone mongod does not support them. Atlas

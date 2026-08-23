@@ -18,12 +18,32 @@ class Settings(BaseSettings):
     access_token_ttl_minutes: int = 15
     refresh_token_ttl_days: int = 30
 
+    # Google Sign-In (ID-token flow via Google Identity Services — no
+    # client secret needed, the backend just verifies the token's
+    # signature and audience against this Client ID). See
+    # docs/DECISIONS.md ADR-011.
+    google_client_id: str = ""
+
     cors_origins: str = "http://localhost:5173"
 
     rate_limit_login_max: int = 5
     rate_limit_login_window_seconds: int = 60
     rate_limit_default_max: int = 100
     rate_limit_default_window_seconds: int = 60
+
+    # Rate limits for the email-verification resend and password-reset
+    # request endpoints — kept distinct from login/register per
+    # docs/SECURITY.md §3 ("login/registration/password-reset endpoints
+    # are rate-limited distinctly").
+    rate_limit_verification_max: int = 5
+    rate_limit_verification_window_seconds: int = 3600
+    rate_limit_password_reset_max: int = 5
+    rate_limit_password_reset_window_seconds: int = 3600
+
+    # Opaque-token TTLs — see docs/DECISIONS.md ADR-010 for why these
+    # specific values within docs/SECURITY.md's stated 15-60 min range.
+    email_verification_ttl_minutes: int = 60
+    password_reset_ttl_minutes: int = 30
 
     # AI usage caps — config, not hardcoded, per docs/SECURITY.md §3 and
     # docs/DECISIONS.md ADR-004. Suggested defaults from the Backend Spec
@@ -33,6 +53,7 @@ class Settings(BaseSettings):
 
     llm_api_key: str = ""
     resend_api_key: str = ""
+    resend_from_email: str = "Thesdel <no-reply@thesdel.app>"
     r2_account_id: str = ""
     r2_access_key_id: str = ""
     r2_secret_access_key: str = ""

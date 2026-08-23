@@ -65,6 +65,9 @@ async def ensure_indexes() -> None:
     db = get_db()
 
     await db.users.create_index("email", unique=True)
+    # Sparse — most users have no google_id (password-only accounts), and a
+    # non-sparse unique index would collide on all those null values.
+    await db.users.create_index("google_id", unique=True, sparse=True)
 
     await db.classes.create_index("join_code", unique=True)
 
@@ -95,3 +98,7 @@ async def ensure_indexes() -> None:
     await db.sessions.create_index("expires_at", expireAfterSeconds=0)
     await db.sessions.create_index("refresh_token_hash", unique=True)
     await db.sessions.create_index("family_id")
+
+    await db.auth_tokens.create_index("token_hash", unique=True)
+    await db.auth_tokens.create_index([("user_id", 1), ("purpose", 1)])
+    await db.auth_tokens.create_index("expires_at", expireAfterSeconds=0)

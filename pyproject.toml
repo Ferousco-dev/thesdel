@@ -16,13 +16,18 @@ dependencies = [
     "arq>=0.26",
     "python-multipart>=0.0.12",
     "structlog>=24.4",
+    "google-auth>=2.35",
+    "requests>=2.32",
+    # Used by app/auth/jobs.py's Resend HTTP wrapper (runs in the ARQ
+    # worker process, not just tests) — already vetted as a dev dependency,
+    # promoted here since production job code now needs it too.
+    "httpx>=0.27",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.3",
     "pytest-asyncio>=0.24",
-    "httpx>=0.27",
     "ruff>=0.7",
     "mypy>=1.13",
     "mongomock-motor>=0.0.34",

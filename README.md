@@ -1,6 +1,9 @@
-# Thesdel Backend
+# Thesdel
 
-FastAPI + MongoDB + Redis, run locally via Docker Compose.
+FastAPI + MongoDB + Redis backend, run locally via Docker Compose. React +
+TypeScript frontend lives in [`frontend/`](frontend/) — see
+[frontend/README.md](frontend/README.md) and
+[frontend/AGENTS.md](frontend/AGENTS.md) for that side.
 
 ## Documentation
 

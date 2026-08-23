@@ -1,0 +1,105 @@
+/* Design tokens per Thesdel_Frontend_Spec.docx §2.2-2.3.
+   Pro's custom accent (Frontend Spec §6.4) swaps --color-primary and
+   --color-primary-dark at runtime via a data-accent attribute — see
+   lib/theme.ts. Do not hardcode orange anywhere outside this file; always
+   reference the CSS variables so that swap actually works app-wide. */
+
+:root {
+  --color-primary: #e8590c;
+  --color-primary-dark: #b8460a;
+
+  --color-bg-light: #fafafa;
+  --color-bg-dark: #121212; /* soft black, not pure #000 — reduces OLED glare, keeps orange legible */
+
+  --color-surface-light: #f0f0f0;
+  --color-surface-dark: #1c1c1c;
+
+  --color-text-primary-light: #16130f;
+  --color-text-secondary-light: #6b6560;
+  --color-text-primary-dark: #f5f3f0;
+  --color-text-secondary-dark: #a39d96;
+
+  --color-border-light: #e0ddd8;
+  --color-border-dark: #2e2b28;
+
+  /* Chosen to not visually collide with the orange accent. */
+  --color-success: #1f9d55;
+  --color-warning: #d69e2e;
+  --color-error: #d64545;
+  --color-info: #3182ce;
+
+  --font-family:
+    "Inter", "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* 5-6 sizes total, per spec §2.3. */
+  --font-size-display: 2rem;
+  --font-size-h1: 1.5rem;
+  --font-size-h2: 1.25rem;
+  --font-size-h3: 1.125rem;
+  --font-size-body: 1rem;
+  --font-size-caption: 0.8125rem;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --tap-target-min: 44px; /* accessibility floor, spec §10 */
+
+  color-scheme: light dark;
+}
+
+/* Default: light mode tokens are active. */
+:root {
+  --color-bg: var(--color-bg-light);
+  --color-surface: var(--color-surface-light);
+  --color-text-primary: var(--color-text-primary-light);
+  --color-text-secondary: var(--color-text-secondary-light);
+  --color-border: var(--color-border-light);
+}
+
+/* Explicit dark mode, toggled by the app (not just OS preference) — see
+   lib/theme.ts. All tiers get light/dark; only Pro gets custom accent. */
+:root[data-theme="dark"] {
+  --color-bg: var(--color-bg-dark);
+  --color-surface: var(--color-surface-dark);
+  --color-text-primary: var(--color-text-primary-dark);
+  --color-text-secondary: var(--color-text-secondary-dark);
+  --color-border: var(--color-border-dark);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size-body);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Timetables are data-dense — tabular figures keep grids aligned, per
+   spec §2.3. Apply this class anywhere a time/date renders in a grid. */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+button,
+a,
+input,
+select {
+  font-family: inherit;
+}
+
+button {
+  min-height: var(--tap-target-min);
+  min-width: var(--tap-target-min);
+}

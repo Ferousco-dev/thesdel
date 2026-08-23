@@ -8,7 +8,9 @@ from fastapi.responses import JSONResponse
 from app.announcements.router import router as announcements_router
 from app.auth.router import router as auth_router
 from app.classes.router import router as classes_router
+from app.litheral.life.router import router as litheral_life_router
 from app.litheral.study.router import router as litheral_study_router
+from app.routines.router import router as routines_router
 from app.shared import db, redis_client
 from app.timetable.router import router as timetable_router
 from app.usage.router import router as usage_router
@@ -89,6 +91,8 @@ def create_app() -> FastAPI:
     app.include_router(announcements_router)
     app.include_router(usage_router)
     app.include_router(litheral_study_router)
+    app.include_router(routines_router)
+    app.include_router(litheral_life_router)
 
     return app
 

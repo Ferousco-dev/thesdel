@@ -12,6 +12,8 @@ Pure functions, no I/O — easy to unit test in isolation from the DB.
 from datetime import date
 from typing import NamedTuple
 
+from app.shared.time_utils import minutes_to_time, time_to_minutes  # noqa: F401 — re-exported
+
 STUDY_WINDOW_START_MINUTES = 8 * 60  # 08:00
 STUDY_WINDOW_END_MINUTES = 22 * 60  # 22:00
 MIN_BLOCK_MINUTES = 30
@@ -49,15 +51,6 @@ class StudyBlock(NamedTuple):
     day_of_week: int
     start_minutes: int
     end_minutes: int
-
-
-def time_to_minutes(value: str) -> int:
-    hours, minutes = value.split(":")
-    return int(hours) * 60 + int(minutes)
-
-
-def minutes_to_time(value: int) -> str:
-    return f"{value // 60:02d}:{value % 60:02d}"
 
 
 def free_intervals_for_day(

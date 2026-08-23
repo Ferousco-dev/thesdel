@@ -12,7 +12,7 @@ router = APIRouter(prefix="/v1/classes/{class_id}/announcements", tags=["announc
 
 
 def _service() -> AnnouncementService:
-    return AnnouncementService(get_db())
+    return AnnouncementService(get_db(), get_redis())
 
 
 @router.get("", response_model=AnnouncementPage)

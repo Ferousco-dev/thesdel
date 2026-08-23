@@ -64,3 +64,10 @@ class ClassMemberRepository:
     async def list_class_ids_for_user(self, user_id: ObjectId) -> list[ObjectId]:
         cursor = self._db.class_members.find({"user_id": user_id}, {"class_id": 1})
         return [doc["class_id"] async for doc in cursor]
+
+    async def list_user_ids_for_class(self, class_id: ObjectId) -> list[ObjectId]:
+        # Bounded by the existing {class_id, user_id} index (see
+        # docs/DATABASE.md §1) — used by ClassService.list_member_user_ids
+        # to build the announcement-push fan-out list.
+        cursor = self._db.class_members.find({"class_id": class_id}, {"user_id": 1})
+        return [doc["user_id"] async for doc in cursor]

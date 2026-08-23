@@ -5,6 +5,7 @@ from app.litheral.life import solver
 from app.litheral.life.repository import LifeScheduleRepository
 from app.litheral.life.schemas import LifeBlockPublic
 from app.litheral.study.service import LitheralStudyService
+from app.notifications.service import NotificationService
 from app.routines.service import RoutineService
 from app.timetable.service import TimetableService
 from app.usage.service import UNLIMITED, AiUsageService
@@ -26,6 +27,7 @@ class LitheralLifeService:
         self._study = LitheralStudyService(db, redis, regenerate_cap=0)
         self._routines = RoutineService(db)
         self._usage = AiUsageService(db, redis)
+        self._notifications = NotificationService(db, redis)
         self._adjust_cap = adjust_cap
 
     async def generate(self, *, user_id: str) -> list[LifeBlockPublic]:
@@ -98,6 +100,13 @@ class LitheralLifeService:
             raise
 
         await self._usage.mark_succeeded(log_id)
+
+        # Pro life-schedule conflict alert (docs/ARCHITECTURE.md §11) —
+        # exactly one push for this run if ANY block conflicts, never one
+        # per conflicting block.
+        if any(doc["conflict_flag"] for doc in docs):
+            await self._notifications.notify_life_schedule_conflict(user_id=user_id)
+
         return [_to_public(doc) for doc in docs]
 
 

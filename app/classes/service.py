@@ -77,6 +77,14 @@ class ClassService:
             raise NotFoundError()
         return _to_public(class_doc)
 
+    async def list_member_user_ids(self, class_id: str) -> list[str]:
+        """Public read used by `app/notifications` to resolve an
+        announcement-push fan-out list — per RULES.md #19/AGENTS.md module
+        boundaries, other modules call this service method rather than
+        reaching into `ClassMemberRepository`/`class_members` directly."""
+        member_ids = await self._members.list_user_ids_for_class(ObjectId(class_id))
+        return [str(uid) for uid in member_ids]
+
     async def _generate_unique_join_code(self) -> str:
         for _ in range(_MAX_JOIN_CODE_ATTEMPTS):
             code = "".join(secrets.choice(_JOIN_CODE_ALPHABET) for _ in range(_JOIN_CODE_LENGTH))

@@ -3,21 +3,42 @@ from datetime import datetime
 
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorDatabase
+from redis.asyncio import Redis
 
 from app.announcements.repository import AnnouncementRepository
 from app.announcements.schemas import AnnouncementCreate, AnnouncementPage, AnnouncementPublic
+from app.classes.service import ClassService
+from app.notifications.service import NotificationService
 from app.shared.errors import NotFoundError
 
 _DEFAULT_PAGE_SIZE = 20
 
 
 class AnnouncementService:
-    def __init__(self, db: AsyncIOMotorDatabase) -> None:
+    def __init__(self, db: AsyncIOMotorDatabase, redis: Redis) -> None:
         self._repo = AnnouncementRepository(db)
+        # Called via their public service interfaces only, never their
+        # repositories — RULES.md #19 / AGENTS.md module boundaries.
+        self._classes = ClassService(db)
+        self._notifications = NotificationService(db, redis)
 
-    async def post(self, *, class_id: str, posted_by: str, body: AnnouncementCreate) -> AnnouncementPublic:
+    async def post(
+        self, *, class_id: str, posted_by: str, body: AnnouncementCreate
+    ) -> AnnouncementPublic:
         doc = await self._repo.create(
             class_id=ObjectId(class_id), posted_by=ObjectId(posted_by), content=body.content
+        )
+        # Push fan-out per docs/ARCHITECTURE.md §11 ("class announcements —
+        # new post, especially pinned"). Enqueued via ARQ, not sent inline;
+        # a transient failure here never fails the announcement-post
+        # request (see app/shared/jobs.py's enqueue_* contract).
+        member_ids = await self._classes.list_member_user_ids(class_id)
+        await self._notifications.notify_announcement_posted(
+            class_id=class_id,
+            announcement_id=str(doc["_id"]),
+            posted_by=posted_by,
+            member_user_ids=member_ids,
+            pinned=doc["pinned"],
         )
         return _to_public(doc)
 

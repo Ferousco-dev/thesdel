@@ -15,6 +15,7 @@ from typing import Any
 from arq.connections import RedisSettings
 
 from app.auth.jobs import send_password_reset_email, send_verification_email
+from app.notifications.jobs import send_push_to_user
 from app.shared.config import get_settings
 from app.shared.db import close_client
 from app.shared.logging import configure_logging, get_logger
@@ -33,7 +34,7 @@ async def _on_shutdown(ctx: dict[str, Any]) -> None:
 
 
 class WorkerSettings:
-    functions = [send_verification_email, send_password_reset_email]
+    functions = [send_verification_email, send_password_reset_email, send_push_to_user]
     # Same Redis connection config as the rest of the app
     # (app/shared/config.py) — no second, hardcoded Redis URL.
     redis_settings = RedisSettings.from_dsn(get_settings().redis_url)

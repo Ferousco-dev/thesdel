@@ -31,6 +31,7 @@ logger = get_logger("jobs")
 
 JOB_SEND_VERIFICATION_EMAIL = "send_verification_email"
 JOB_SEND_PASSWORD_RESET_EMAIL = "send_password_reset_email"
+JOB_SEND_PUSH_TO_USER = "send_push_to_user"
 
 _pool: ArqRedis | None = None
 
@@ -66,3 +67,9 @@ async def enqueue_email_verification(*, user_id: str, email: str, token: str) ->
 
 async def enqueue_password_reset_email(*, user_id: str, email: str, token: str) -> None:
     await _enqueue(JOB_SEND_PASSWORD_RESET_EMAIL, user_id=user_id, email=email, token=token)
+
+
+async def enqueue_push_to_user(
+    *, user_id: str, title: str, body: str, data: dict[str, str] | None = None
+) -> None:
+    await _enqueue(JOB_SEND_PUSH_TO_USER, user_id=user_id, title=title, body=body, data=data or {})

@@ -102,3 +102,6 @@ async def ensure_indexes() -> None:
     await db.auth_tokens.create_index("token_hash", unique=True)
     await db.auth_tokens.create_index([("user_id", 1), ("purpose", 1)])
     await db.auth_tokens.create_index("expires_at", expireAfterSeconds=0)
+
+    await db.device_tokens.create_index("token", unique=True)
+    await db.device_tokens.create_index("user_id")

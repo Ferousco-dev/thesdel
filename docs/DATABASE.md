@@ -238,6 +238,29 @@ revoked_at: datetime | null
 **Indexes:** `{user_id}`, `{family_id}`, unique `{refresh_token_hash}`, TTL
 index on `expires_at`.
 
+### `device_tokens` (implemented — `app/notifications/`)
+```
+_id: ObjectId
+user_id: ObjectId -> users._id
+token: string                    # FCM registration token — unique; a
+                                  # device re-registering the same token on
+                                  # every app launch upserts this doc
+                                  # rather than creating a duplicate
+platform: "ios" | "android" | "web"
+created_at: datetime
+last_seen_at: datetime           # bumped on every re-registration
+```
+**Indexes:** unique `{token}` (upsert-on-register lookup; also the
+invariant enforcement that one token maps to at most one document even if
+it moves between users, e.g. a shared/reset device — the upsert always
+overwrites `user_id` to the current registrant), `{user_id}` (fan-out
+lookup: "every device for this user" when sending a push).
+
+A user can have multiple registered devices (no uniqueness on `user_id`
+alone). Unregistering (`DELETE /v1/notifications/devices/{token}`) is
+scoped to `{user_id, token}` so a user can never delete another user's
+token — see docs/SECURITY.md and RULES.md #2/#4.
+
 ## 2. Query Patterns and Their Indexes — Summary Table
 
 | Query | Index |
@@ -252,6 +275,8 @@ index on `expires_at`.
 | Find the current season for a given date | `seasons {start_date, end_date}` |
 | Streak lookup for a pair | `partner_streaks {user_a, user_b}` unique compound |
 | Session lookup on refresh | `sessions {user_id}` |
+| Register/re-register a device token (upsert) | `device_tokens {token}` unique |
+| Fan a push out across a user's devices | `device_tokens {user_id}` |
 
 Every index above exists because it serves a named query pattern in this
 table — no index is added speculatively (per `RULES.md`: never add a

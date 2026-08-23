@@ -22,6 +22,7 @@ don't share a single unified privacy law equivalent to GDPR.
 | Device/session metadata (refresh token, device label) | Auth session management | `sessions` |
 | Uploaded timetable images (import flow) | One-time parsing input | R2 object storage |
 | Subscription/tier status | Billing enforcement | `users.tier`, billing webhook events |
+| Device push token, platform | Deliver class-announcement/life-conflict push notifications | `device_tokens` |
 
 **Nothing is collected "because it might be useful later."** Every field
 above maps to a specific, currently-shipped feature. Any new field proposed
@@ -47,6 +48,7 @@ in future work should be checked against this table before being added.
 | Timetable/announcement content | Retained until user/class deletion |
 | `user_badges`, `thesdel_score` | Currently spec'd as permanent — **pending resolution against account-deletion rights**, see §5 and `DECISIONS.md` ADR-006 |
 | Uploaded timetable-import images | Deleted after successful parsing, or after a bounded TTL if parsing fails/is abandoned (not indefinitely retained) |
+| `device_tokens` (FCM push token, platform) | Retained until explicitly unregistered by the user or overwritten by another user re-registering the same physical device (upsert-by-token) — no TTL, since a stale-but-not-yet-invalid token is harmless and FCM itself reports dead tokens for pruning (see `app/notifications/jobs.py`) |
 
 ## 4. Third-Party Processors
 

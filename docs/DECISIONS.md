@@ -422,3 +422,90 @@ handles the key-fetching and signature check.
 - `GOOGLE_CLIENT_ID` is required config — the backend rejects a token
   whose `aud` claim doesn't match it, which is what stops a valid ID
   token issued to some *other* app from being replayed against this one.
+
+---
+
+## ADR-012: FCM legacy HTTP API (server-key auth) over FCM HTTP v1
+
+**Status:** Accepted
+
+**Context:** `app/notifications/` needs to send push notifications via
+FCM (docs/ARCHITECTURE.md §11). `app/shared/config.py` already declares
+`fcm_server_key: str = ""`, but ARCHITECTURE.md doesn't pin down which
+FCM API version/auth scheme to use, and Google is deprecating the legacy
+HTTP API in favor of HTTP v1 (OAuth2, service-account credentials).
+
+**Alternatives considered:**
+- **FCM HTTP v1** (`fcm.googleapis.com/v1/projects/{id}/messages:send`,
+  OAuth2 bearer token minted from a service-account JSON key) — the
+  Google-recommended current API. Rejected for this pass: minting the
+  OAuth2 token server-side needs either the `firebase-admin` SDK or
+  `google-auth` plus manual JWT-bearer-grant plumbing — meaningful new
+  dependency weight (`firebase-admin` pulls in gRPC, protobuf, and a
+  handful of Google API client transitive deps) for a project whose
+  Dependency Rules (AGENTS.md) explicitly call for minimizing dependency
+  count, when the existing `httpx`-based legacy API already gets a
+  working, testable push path today.
+- **FCM legacy HTTP API** (`fcm.googleapis.com/fcm/send`, static server-key
+  bearer auth) — chosen. A single `httpx` POST, same shape as
+  `app/shared/email.py`'s Resend wrapper, no new dependency, and matches
+  the `fcm_server_key` config field that already exists.
+
+**Reason:** Matches the project's stated dependency-minimization bias
+(AGENTS.md "Dependency Rules") and the existing `httpx`-only pattern used
+for Resend. The legacy API is deprecated by Google but not yet shut down;
+this is a documented, revisitable tradeoff, not an oversight.
+
+**Consequences:**
+- `app/shared/push.py` implements `send_push` against
+  `fcm.googleapis.com/fcm/send` using `Authorization: key=<fcm_server_key>`.
+- **Follow-up (not built here):** migrating to FCM HTTP v1 before Google
+  fully retires the legacy endpoint will require adding an OAuth2-token-
+  minting dependency at that point — tracked here so it isn't a surprise
+  when Google's deprecation timeline forces the move.
+- If `fcm_server_key` is unset (local/test default), `send_push` no-ops
+  rather than erroring, mirroring `send_email`'s missing-API-key behavior.
+
+---
+
+## ADR-013: Notification dedup mechanism, and study-block reminders deferred
+
+**Status:** Accepted
+
+**Context:** docs/ARCHITECTURE.md §7/§8 requires notification jobs to be
+deduplicated ("naturally idempotent-safe to over-send but are still
+deduplicated to avoid spamming users") without specifying the mechanism.
+Separately, §11 lists three push triggers — class announcements,
+study-block reminders, and Pro life-schedule conflict alerts — but only
+the first and third are event-triggered from an existing write path;
+study-block reminders are time-based ("remind me before this block
+starts").
+
+**Dedup mechanism chosen:** a Redis `SET key NX EX 300` guard in
+`NotificationService._dedup_or_skip`, keyed
+`notif:dedup:{notification_type}:{source_id}` (e.g.
+`notif:dedup:announcement_new:{announcement_id}`,
+`notif:dedup:life_conflict:{user_id}`). The first caller within a 5-minute
+window proceeds to enqueue; subsequent calls for the same key are skipped.
+This collapses duplicate enqueue attempts for the same trigger (e.g. a
+retried request, or a life-schedule regenerate re-triggered shortly after
+a previous one) without needing a generic notification-log collection —
+RULES.md #23 says not to build an abstraction the task doesn't need yet,
+and a per-trigger Redis key is sufficient given the trigger set is small
+and fixed (two triggers this pass). Per §7, Redis is already the right
+place for this kind of ephemeral, TTL-bound guard (never the source of
+truth for permanent data). A Redis failure fails *open* (the push still
+sends) rather than closed, deliberately the opposite of the AI-cap/rate-
+limit fail-closed policy in §7 — over-sending is the documented-safe
+direction here, silently dropping a real notification is not.
+
+**Study-block reminders — explicitly deferred, not built:** these need a
+time-based trigger (e.g. "remind me 10 minutes before this study block"),
+which requires either a periodic ARQ cron job scanning upcoming blocks or
+per-block scheduled jobs — meaningfully different infrastructure from the
+event-triggered `enqueue_push_to_user` calls this pass wires up (new post
+→ push, conflict detected → push). Building a half version now (e.g.
+firing on generation rather than on a schedule) would not match the
+actual "study-block reminders" feature and would need to be redone
+anyway. Scoped out per the task's explicit instruction; tracked here as
+the next Litheral-adjacent notifications work.

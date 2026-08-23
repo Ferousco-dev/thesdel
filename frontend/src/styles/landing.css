@@ -1,0 +1,124 @@
+/* Landing page — same design as given, recolored from violet/pink to
+   Thesdel's orange/black brand. Structure, copy, and layout are
+   unchanged; only this color-override block and the brand name differ
+   from the original. */
+
+body.landing-page {
+  font-family: "Plus Jakarta Sans", Inter, system-ui, sans-serif;
+}
+.gradient-text {
+  background: linear-gradient(100deg, #e8590c, #ff8a3d);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hero-wash {
+  background: linear-gradient(180deg, #fdf6ef 0%, #fdf6ef 74%, #fffdfb 100%);
+}
+
+/* Thesdel brand tokens: warm off-white surfaces, orange action, deep
+   near-black footer. Button/text shades use the darker orange
+   (#b8460a / #983808) rather than the brighter brand orange (#e8590c) —
+   white text on #e8590c measures ~3.6:1, under WCAG AA's 4.5:1 floor for
+   normal text; the darker shade measures ~5.4:1. Same reasoning as
+   --color-accent-text in theme.css. */
+.bg-slate-50 {
+  background-color: #fafafa !important;
+}
+.bg-violet-50 {
+  background-color: #fdf0e6 !important;
+}
+.bg-violet-50\/40 {
+  background-color: #fdf1e8 !important;
+}
+.bg-violet-50\/60 {
+  background-color: #fdf0e6 !important;
+}
+.bg-violet-600 {
+  background-color: #b8460a !important;
+}
+.hover\:bg-violet-700:hover {
+  background-color: #983808 !important;
+}
+.text-violet-600 {
+  color: #b8460a !important;
+}
+.text-violet-700 {
+  color: #983808 !important;
+}
+.hover\:text-violet-700:hover {
+  color: #983808 !important;
+}
+.focus\:bg-violet-700:focus {
+  background-color: #983808 !important;
+}
+.border-violet-100 {
+  border-color: #f5dcc9 !important;
+}
+.border-slate-200 {
+  border-color: #e4ded8 !important;
+}
+.shadow-violet-200 {
+  --tw-shadow-color: #f3d9bf !important;
+}
+.hover\:bg-violet-50:hover {
+  background-color: #fdf0e6 !important;
+}
+.hover\:border-violet-200:hover {
+  border-color: #f6c9a0 !important;
+}
+.focus\:ring-violet-100:focus {
+  --tw-ring-color: #fbe4d0 !important;
+}
+.focus\:ring-violet-200:focus {
+  --tw-ring-color: #f6c9a0 !important;
+}
+
+/* Decorative sparkle icons in the hero (text-violet-300/400,
+   text-fuchsia-300) and the testimonial quote mark (text-violet-200) —
+   all graphical, not text, so only need 3:1, but keeping them in the
+   orange family rather than leaving fuchsia in is part of "no pink,
+   orange/black only" per the brand. */
+.text-violet-200 {
+  color: #f6c9a0 !important;
+}
+.text-violet-300 {
+  color: #f3b986 !important;
+}
+.text-violet-400 {
+  color: #eb7a33 !important;
+}
+.text-fuchsia-300 {
+  color: #f0955a !important;
+}
+
+.brand-footer {
+  background-color: #17130f;
+}
+.brand-footer .border-slate-800 {
+  border-color: #332c26 !important;
+}
+.brand-footer a:hover {
+  color: #ffb385;
+}
+.border-violet-500\/20 {
+  border-color: rgba(232, 89, 12, 0.2) !important;
+}
+.border-violet-300\/30 {
+  border-color: rgba(255, 179, 133, 0.3) !important;
+}
+.text-violet-100 {
+  color: #ffd9bc !important;
+}
+.text-violet-100\/70 {
+  color: rgba(255, 217, 188, 0.7) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

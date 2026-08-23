@@ -42,8 +42,16 @@
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
+  --radius-block: 4px; /* timetable/study/routine blocks — deliberately tighter than card radius, so the grid reads as data, not as UI chrome */
 
   --tap-target-min: 44px; /* accessibility floor, spec §10 */
+
+  /* Marketing-page-only tokens (landing.css). Kept separate from the app's
+     own spacing so a future spacing-scale change for the authenticated app
+     doesn't silently reflow the public site. */
+  --content-max-width: 1080px;
+  --section-padding-y: clamp(3rem, 6vw, 6rem);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
   color-scheme: light dark;
 }
@@ -55,6 +63,22 @@
   --color-text-primary: var(--color-text-primary-light);
   --color-text-secondary: var(--color-text-secondary-light);
   --color-border: var(--color-border-light);
+
+  /* --color-primary (e8590c) is verified 3:1 against both bg tokens — fine
+     for borders, dashes, decorative swatches, but NOT for text or button
+     fill, where it measures ~3.4:1 on light backgrounds (fails WCAG AA's
+     4.5:1 for normal text). --color-accent-text is the accent color as it
+     may be used for TEXT: --color-primary-dark in light mode (5.1:1),
+     --color-primary itself in dark mode (5.2:1 — already fine there).
+     Verified with a script against the actual token hex values, not
+     eyeballed — see the accent-swap presets in lib/theme.ts, whose
+     "Dark" variant was chosen to keep this same guarantee for Pro's
+     custom accent colors. Always use this token for accent-colored TEXT;
+     use --color-primary directly only for borders/decoration/fills where
+     white or dark text sits on top of it (button fill uses
+     --color-primary-dark for the same contrast reason — see .btn--primary
+     below). */
+  --color-accent-text: var(--color-primary-dark);
 }
 
 /* Explicit dark mode, toggled by the app (not just OS preference) — see
@@ -65,6 +89,7 @@
   --color-text-primary: var(--color-text-primary-dark);
   --color-text-secondary: var(--color-text-secondary-dark);
   --color-border: var(--color-border-dark);
+  --color-accent-text: var(--color-primary);
 }
 
 * {
@@ -102,4 +127,61 @@ select {
 button {
   min-height: var(--tap-target-min);
   min-width: var(--tap-target-min);
+}
+
+/* Shared button classes — the ONE definition of what a button looks like.
+   Used by the landing page and by in-app components (e.g. UpgradePrompt);
+   don't reinline these styles elsewhere, per RULES.md #8. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: var(--tap-target-min);
+  padding: 0 1.25rem;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: filter 120ms var(--ease-out), transform 120ms var(--ease-out);
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.btn--primary {
+  /* --color-primary-dark, not --color-primary — white text on the
+     brighter orange fails 4.5:1 (measures ~3.6:1); the darker shade
+     passes at ~5.4:1. See --color-accent-text's comment above. */
+  background: var(--color-primary-dark);
+  color: white;
+}
+.btn--primary:hover {
+  filter: brightness(0.9);
+}
+.btn--ghost {
+  background: transparent;
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+.btn--ghost:hover {
+  border-color: var(--color-text-secondary);
+}
+.btn--text {
+  background: transparent;
+  color: var(--color-accent-text);
+  padding: 0;
+  min-height: auto;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
 }

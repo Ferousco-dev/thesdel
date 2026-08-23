@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./lib/auth/AuthContext";
 import { applyThemeMode } from "./lib/theme";
 import { ClassesPage } from "./routes/ClassesPage";
+import { LandingPage } from "./routes/LandingPage";
 import { LitheralPage } from "./routes/LitheralPage";
 import { LoginPage } from "./routes/LoginPage";
 import { ProfilePage } from "./routes/ProfilePage";
@@ -22,6 +23,7 @@ export function App() {
   return (
     <AuthProvider>
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route element={<RootLayout />}>
           <Route path="/timetable" element={<TimetablePage />} />

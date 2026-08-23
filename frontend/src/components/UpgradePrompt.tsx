@@ -18,7 +18,7 @@ export function UpgradePrompt({ requiredTier }: { requiredTier: Tier }) {
       <p>Upgrade to unlock this.</p>
       {/* Actual upgrade/billing flow is not yet implemented — see backend
           docs/DECISIONS.md ADR-007 (payment provider selection is open). */}
-      <button type="button" style={{ background: "var(--color-primary)", color: "white", border: "none", borderRadius: "var(--radius-md)", padding: "0.75rem 1.5rem" }}>
+      <button type="button" className="btn btn--primary">
         See plans
       </button>
     </div>

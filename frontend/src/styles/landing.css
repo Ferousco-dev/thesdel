@@ -25,6 +25,11 @@ body.landing-page {
 .bg-slate-50 {
   background-color: #fafafa !important;
 }
+.bg-slate-50\/90 {
+  /* Nav bar specifically — cream to match the hero-wash gradient it sits
+     above, not the plain off-white the other bg-slate-50 sections use. */
+  background-color: rgba(253, 246, 239, 0.9) !important;
+}
 .bg-violet-50 {
   background-color: #fdf0e6 !important;
 }
@@ -45,6 +50,9 @@ body.landing-page {
 }
 .text-violet-700 {
   color: #983808 !important;
+}
+.hover\:text-violet-600:hover {
+  color: #b8460a !important;
 }
 .hover\:text-violet-700:hover {
   color: #983808 !important;

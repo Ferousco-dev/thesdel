@@ -168,20 +168,34 @@ earned_at: datetime             # permanent, never deleted — see DECISIONS ADR
 ### `seasons`
 ```
 _id: ObjectId
-start_date: date
-end_date: date                  # ~3-month cadence
+start_date: datetime            # UTC midnight; conceptually a calendar date
+                                 # — BSON has no native date type, so this is
+                                 # stored the same way ai_usage_log.created_at is
+end_date: datetime               # ~3-month cadence
 ```
 
-### `partner_streaks` (exploratory)
+### `partner_streaks` (implemented — `app/streaks/`)
 ```
 _id: ObjectId
 user_a: ObjectId -> users._id   # normalized: user_a < user_b lexically,
 user_b: ObjectId -> users._id   # so a pair is never creatable in both directions
+invited_by: ObjectId -> users._id  # which of user_a/user_b sent the invite;
+                                    # the OTHER one is the only party allowed
+                                    # to accept — see SECURITY.md and
+                                    # DECISIONS.md ADR-009
 current_streak: int
-last_interaction_at: datetime
+last_interaction_at: datetime | null  # null until accepted
 status: "pending" | "active"    # mutual opt-in required — see SECURITY.md
 ```
-**Indexes:** unique compound `{user_a, user_b}`.
+**Indexes:** unique compound `{user_a, user_b}` (invite/accept lookup by
+normalized pair; also the invariant enforcement for "a pair is never
+creatable in both directions").
+
+**Interaction / reset model (ADR-009):** interaction = an explicit daily
+check-in endpoint (`POST /v1/streaks/check-in`), callable by either partner,
+incrementing `current_streak` at most once per UTC calendar day per pair.
+Staleness (no check-in for 48+ hours since `last_interaction_at`) resets
+`current_streak` to 0 lazily — evaluated on next read/check-in, no cron.
 
 ### `sessions` (new — required by ADR-002, not in original spec)
 ```
@@ -209,6 +223,8 @@ index on `expires_at`.
 | Announcement feed for a class | `announcements {class_id, pinned, created_at}` |
 | AI cap check for current period | `ai_usage_log {user_id, feature, created_at}` (backstop; live check is Redis) |
 | Badge shelf for a user | `user_badges {user_id, badge_id}` unique compound doubles as lookup index |
+| Find badges matching a criteria_type when evaluating an award event | `badges {criteria_type}` |
+| Find the current season for a given date | `seasons {start_date, end_date}` |
 | Streak lookup for a pair | `partner_streaks {user_a, user_b}` unique compound |
 | Session lookup on refresh | `sessions {user_id}` |
 

@@ -10,8 +10,10 @@ from app.auth.router import router as auth_router
 from app.classes.router import router as classes_router
 from app.litheral.life.router import router as litheral_life_router
 from app.litheral.study.router import router as litheral_study_router
+from app.progression.router import router as progression_router
 from app.routines.router import router as routines_router
 from app.shared import db, redis_client
+from app.streaks.router import router as streaks_router
 from app.timetable.router import router as timetable_router
 from app.usage.router import router as usage_router
 from app.shared.config import get_settings
@@ -93,6 +95,8 @@ def create_app() -> FastAPI:
     app.include_router(litheral_study_router)
     app.include_router(routines_router)
     app.include_router(litheral_life_router)
+    app.include_router(progression_router)
+    app.include_router(streaks_router)
 
     return app
 

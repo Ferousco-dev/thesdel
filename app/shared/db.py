@@ -86,6 +86,8 @@ async def ensure_indexes() -> None:
     await db.ai_usage_log.create_index("created_at", expireAfterSeconds=60 * 60 * 24 * 395)
 
     await db.user_badges.create_index([("user_id", 1), ("badge_id", 1)], unique=True)
+    await db.badges.create_index("criteria_type")
+    await db.seasons.create_index([("start_date", 1), ("end_date", 1)])
 
     await db.partner_streaks.create_index([("user_a", 1), ("user_b", 1)], unique=True)
 

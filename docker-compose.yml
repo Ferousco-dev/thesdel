@@ -1,0 +1,73 @@
+services:
+  api:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      MONGO_URI: mongodb://mongo:27017/?replicaSet=rs0
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./app:/srv/app
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # MongoDB, run as a single-node replica set. Multi-document transactions
+  # (used for class-join + member_count, see docs/DATABASE.md §3) require a
+  # replica set — a plain standalone mongod does not support them. Atlas
+  # provisions a replica set by default even on the free/shared tier (see
+  # docs/RESEARCH.md #3), so this mirrors production, it isn't a
+  # local-only workaround.
+  mongo:
+    image: mongo:7
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # One-shot: initiates the replica set once mongo is reachable, then exits.
+  # `api` waits on this completing successfully before starting.
+  mongo-init:
+    image: mongo:7
+    depends_on:
+      mongo:
+        condition: service_healthy
+    entrypoint: ["bash", "-c"]
+    command:
+      - >
+        mongosh --host mongo:27017 --eval '
+        try {
+          rs.status();
+        } catch (e) {
+          rs.initiate({_id: "rs0", members: [{_id: 0, host: "mongo:27017"}]});
+        }
+        '
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mongo_data:
+  redis_data:

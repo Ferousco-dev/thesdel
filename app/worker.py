@@ -13,8 +13,10 @@ them. See docs/ARCHITECTURE.md §8 and docs/DECISIONS.md ADR-010.
 from typing import Any
 
 from arq.connections import RedisSettings
+from arq.cron import cron
 
 from app.auth.jobs import send_password_reset_email, send_verification_email
+from app.files.jobs import cleanup_abandoned_file_uploads
 from app.notifications.jobs import send_push_to_user
 from app.shared.config import get_settings
 from app.shared.db import close_client
@@ -35,6 +37,10 @@ async def _on_shutdown(ctx: dict[str, Any]) -> None:
 
 class WorkerSettings:
     functions = [send_verification_email, send_password_reset_email, send_push_to_user]
+    # Hourly sweep of abandoned timetable-import uploads — see
+    # app/files/jobs.py's module docstring for why this can't be a bare
+    # Mongo TTL index (it can't also delete the R2 object).
+    cron_jobs = [cron(cleanup_abandoned_file_uploads, hour=set(range(24)), minute=0)]
     # Same Redis connection config as the rest of the app
     # (app/shared/config.py) — no second, hardcoded Redis URL.
     redis_settings = RedisSettings.from_dsn(get_settings().redis_url)

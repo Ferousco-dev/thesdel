@@ -105,3 +105,8 @@ async def ensure_indexes() -> None:
 
     await db.device_tokens.create_index("token", unique=True)
     await db.device_tokens.create_index("user_id")
+
+    # Serves the abandoned-upload cleanup sweep (app/files/jobs.py):
+    # `pending_parse` records older than the bounded TTL. See
+    # docs/DATABASE.md's `file_uploads` section.
+    await db.file_uploads.create_index([("status", 1), ("created_at", 1)])

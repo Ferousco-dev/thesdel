@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 
-import { getMe, login as apiLogin, logout as apiLogout, register as apiRegister } from "../api/endpoints";
+import {
+  getMe,
+  googleAuth,
+  login as apiLogin,
+  logout as apiLogout,
+  register as apiRegister,
+} from "../api/endpoints";
 import { tokenStore } from "../api/tokenStore";
 import type { UserPublic } from "../api/types";
 import { AuthContext, type AuthContextValue } from "./context";
@@ -39,6 +45,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus("authenticated");
   }, []);
 
+  const loginWithGoogle = useCallback(async (idToken: string) => {
+    const result = await googleAuth(idToken);
+    tokenStore.set({ accessToken: result.access_token, refreshToken: result.refresh_token });
+    setUser(result.user);
+    setStatus("authenticated");
+  }, []);
+
   const logout = useCallback(async () => {
     const tokens = tokenStore.get();
     if (tokens) {
@@ -53,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, status, login, register, logout }}>
+    <AuthContext.Provider value={{ user, status, login, register, loginWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );

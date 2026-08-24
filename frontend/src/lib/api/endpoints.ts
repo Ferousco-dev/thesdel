@@ -38,6 +38,14 @@ export function login(input: { email: string; password: string }) {
   });
 }
 
+export function googleAuth(idToken: string) {
+  return apiRequest<TokenPairResponse & { user: UserPublic }>("/v1/auth/google", {
+    method: "POST",
+    body: { id_token: idToken },
+    auth: false,
+  });
+}
+
 export function logout(refreshToken: string) {
   return apiRequest<void>("/v1/auth/logout", {
     method: "POST",

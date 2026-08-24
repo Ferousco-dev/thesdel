@@ -1,0 +1,185 @@
+/* Auth screen — split layout: branded panel + form panel. Uses the app's
+   own design tokens (theme.css), not Tailwind — this screen is part of the
+   authenticated app shell, not the marketing site (see frontend/AGENTS.md
+   on where Tailwind is and isn't scoped). */
+
+.auth-screen {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+  .auth-screen {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.auth-panel {
+  position: relative;
+  display: none;
+  flex-direction: column;
+  padding: 3rem;
+  background: #17130f;
+  color: #ffd9bc;
+  overflow: hidden;
+}
+@media (min-width: 900px) {
+  .auth-panel {
+    display: flex;
+  }
+}
+.auth-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 30% 20%,
+    rgba(232, 89, 12, 0.35),
+    transparent 55%
+  );
+  pointer-events: none;
+}
+
+.auth-panel__brand {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: white;
+}
+
+.auth-panel__copy {
+  position: relative;
+  z-index: 2;
+  max-width: 20rem;
+  margin-top: 3rem;
+}
+.auth-panel__copy h2 {
+  font-size: 1.75rem;
+  line-height: 1.2;
+  color: white;
+  margin: 0 0 0.75rem;
+}
+.auth-panel__copy p {
+  color: #ffd9bc;
+  line-height: 1.6;
+  font-size: 0.9375rem;
+}
+
+.auth-panel__figure {
+  position: absolute;
+  z-index: 1;
+  right: 1rem;
+  bottom: 0;
+  width: 50%;
+  max-width: 260px;
+  max-height: 55%;
+  object-fit: contain;
+  object-position: bottom;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.4));
+}
+
+.auth-form-side {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  background: var(--color-bg);
+}
+
+.auth-form {
+  width: 100%;
+  max-width: 380px;
+}
+
+.auth-form__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  margin-bottom: 2rem;
+}
+.auth-form__back:hover {
+  color: var(--color-text-primary);
+}
+
+.auth-form h1 {
+  font-size: var(--font-size-h1);
+  margin: 0 0 0.4rem;
+  color: var(--color-text-primary);
+}
+.auth-form__subtitle {
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
+  margin: 0 0 2rem;
+}
+
+.auth-field {
+  margin-bottom: 1.1rem;
+}
+.auth-field label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.4rem;
+}
+.auth-field input {
+  width: 100%;
+  min-height: var(--tap-target-min);
+  padding: 0 0.9rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: 0.9375rem;
+}
+.auth-field input:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.auth-error {
+  color: var(--color-error);
+  font-size: 0.875rem;
+  margin: 0 0 1rem;
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.auth-switch {
+  margin-top: 1.25rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+.auth-switch:hover {
+  color: var(--color-text-primary);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.75rem 0;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}

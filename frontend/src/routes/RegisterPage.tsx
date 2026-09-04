@@ -7,14 +7,8 @@ import { isApiError } from "../lib/api/errors";
 import { useAuth } from "../lib/auth/useAuth";
 import "../styles/auth.css";
 
-// Split-screen auth: branded panel (left, desktop only) + form (right).
-// Same visual system as the landing page (orange/black, the flower-face
-// logomark) but built with the app's own theme.css tokens rather than
-// Tailwind — this screen is part of the authenticated app shell, not the
-// marketing site.
-export function LoginPage() {
-  const { login, register, status } = useAuth();
-  const [mode, setMode] = useState<"login" | "register">("login");
+export function RegisterPage() {
+  const { register, status } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -28,11 +22,7 @@ export function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      if (mode === "login") {
-        await login(email, password);
-      } else {
-        await register(email, password, displayName);
-      }
+      await register(email, password, displayName);
     } catch (err) {
       setError(isApiError(err) ? err.message : "Something went wrong.");
     } finally {
@@ -66,8 +56,7 @@ export function LoginPage() {
           <h2>Your class timetable. Then Litheral builds your week around it.</h2>
           <p>
             Build or join a class timetable for free. Premium and Pro add Litheral to plan your
-            study time and, on Pro, your whole week — without ever hiding a class you're supposed
-            to be in.
+            study time and, on Pro, your whole week.
           </p>
         </div>
 
@@ -86,10 +75,21 @@ export function LoginPage() {
             ← Back to home
           </Link>
 
-          <h1>Welcome back</h1>
+          <h1>Create your account</h1>
           <p className="auth-form__subtitle">
-            Sign in to see your timetable.
+            Free forever for your timetable and class updates.
           </p>
+
+          <div className="auth-field">
+            <label htmlFor="displayName">Display name</label>
+            <input
+              id="displayName"
+              autoComplete="name"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              required
+            />
+          </div>
 
           <div className="auth-field">
             <label htmlFor="email">Email</label>
@@ -104,16 +104,11 @@ export function LoginPage() {
           </div>
 
           <div className="auth-field">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <label htmlFor="password">Password</label>
-              <Link to="/forgot-password" style={{ fontSize: "var(--font-size-caption)", color: "var(--color-accent-text)", textDecoration: "none" }}>
-                Forgot?
-              </Link>
-            </div>
+            <label htmlFor="password">Password</label>
             <input
               id="password"
               type="password"
-              autoComplete="current-password"
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -128,11 +123,11 @@ export function LoginPage() {
           )}
 
           <button type="submit" className="btn btn--primary auth-submit" disabled={submitting}>
-            Log in
+            Sign up
           </button>
 
           <div className="auth-switch">
-            Need an account? <Link to="/register">Sign up</Link>
+            Have an account? <Link to="/login">Log in</Link>
           </div>
 
           <div className="auth-divider">or</div>

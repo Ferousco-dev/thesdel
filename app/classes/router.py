@@ -3,6 +3,7 @@ from fastapi import APIRouter, status
 from app.classes.schemas import (
     ClassPreview,
     ClassPublic,
+    ClassPublicWithRole,
     CreateClassRequest,
     JoinClassRequest,
     MembershipPublic,
@@ -31,6 +32,11 @@ async def preview_class(join_code: str, user: CurrentUserDep) -> ClassPreview:
 @router.post("/join", response_model=MembershipPublic)
 async def join_class(body: JoinClassRequest, user: CurrentUserDep) -> MembershipPublic:
     return await _service().join_class(join_code=body.join_code, user_id=user.id)
+
+
+@router.get("", response_model=list[ClassPublicWithRole])
+async def list_my_classes(user: CurrentUserDep) -> list[ClassPublicWithRole]:
+    return await _service().list_my_classes(user.id)
 
 
 @router.get("/{class_id}", response_model=ClassPublic)

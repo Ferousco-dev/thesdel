@@ -5,7 +5,12 @@ from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.classes.repository import ClassMemberRepository, ClassRepository
-from app.classes.schemas import ClassPreview, ClassPublic, MembershipPublic
+from app.classes.schemas import (
+    ClassPreview,
+    ClassPublic,
+    ClassPublicWithRole,
+    MembershipPublic,
+)
 from app.shared.db import run_in_transaction
 from app.shared.errors import ConflictError, NotFoundError
 
@@ -77,6 +82,20 @@ class ClassService:
             raise NotFoundError()
         return _to_public(class_doc)
 
+    async def list_my_classes(self, user_id: str) -> list[ClassPublicWithRole]:
+        memberships = await self._members.list_memberships_for_user(ObjectId(user_id))
+        class_ids = [m["class_id"] for m in memberships]
+        classes = await self._classes.find_many_by_ids(class_ids)
+
+        class_map = {str(c["_id"]): c for c in classes}
+
+        results = []
+        for m in memberships:
+            cid = str(m["class_id"])
+            if cid in class_map:
+                results.append(_to_public_with_role(class_map[cid], m["role"]))
+        return results
+
     async def list_member_user_ids(self, class_id: str) -> list[str]:
         """Public read used by `app/notifications` to resolve an
         announcement-push fan-out list — per RULES.md #19/AGENTS.md module
@@ -100,4 +119,15 @@ def _to_public(class_doc: dict) -> ClassPublic:
         join_code=class_doc["join_code"],
         member_count=class_doc["member_count"],
         created_by=str(class_doc["created_by"]),
+    )
+
+
+def _to_public_with_role(class_doc: dict, role: str) -> ClassPublicWithRole:
+    return ClassPublicWithRole(
+        id=str(class_doc["_id"]),
+        name=class_doc["name"],
+        join_code=class_doc["join_code"],
+        member_count=class_doc["member_count"],
+        created_by=str(class_doc["created_by"]),
+        role=role,
     )

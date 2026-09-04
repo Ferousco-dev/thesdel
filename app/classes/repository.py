@@ -27,6 +27,10 @@ class ClassRepository:
     async def find_by_join_code(self, join_code: str) -> dict[str, Any] | None:
         return await self._db.classes.find_one({"join_code": join_code})
 
+    async def find_many_by_ids(self, class_ids: list[ObjectId]) -> list[dict[str, Any]]:
+        cursor = self._db.classes.find({"_id": {"$in": class_ids}})
+        return [doc async for doc in cursor]
+
     async def increment_member_count(
         self, class_id: ObjectId, *, session: AsyncIOMotorClientSession | None = None
     ) -> None:
@@ -64,6 +68,10 @@ class ClassMemberRepository:
     async def list_class_ids_for_user(self, user_id: ObjectId) -> list[ObjectId]:
         cursor = self._db.class_members.find({"user_id": user_id}, {"class_id": 1})
         return [doc["class_id"] async for doc in cursor]
+
+    async def list_memberships_for_user(self, user_id: ObjectId) -> list[dict[str, Any]]:
+        cursor = self._db.class_members.find({"user_id": user_id}, {"class_id": 1, "role": 1})
+        return [doc async for doc in cursor]
 
     async def list_user_ids_for_class(self, class_id: ObjectId) -> list[ObjectId]:
         # Bounded by the existing {class_id, user_id} index (see

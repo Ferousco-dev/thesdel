@@ -13,6 +13,10 @@ class ClassPublic(BaseModel):
     created_by: str
 
 
+class ClassPublicWithRole(ClassPublic):
+    role: str
+
+
 class ClassPreview(BaseModel):
     """Shown before joining — name, rep, member count, no join_code (that's
     only revealed to members), per docs/Frontend Spec §4.3."""

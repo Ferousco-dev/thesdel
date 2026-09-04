@@ -26,6 +26,10 @@ export interface ClassPublic {
   created_by: string;
 }
 
+export interface ClassPublicWithRole extends ClassPublic {
+  role: string;
+}
+
 export interface ClassPreview {
   id: string;
   name: string;
@@ -109,4 +113,46 @@ export interface FeatureCapStatus {
 
 export interface UsageStatusResponse {
   caps: FeatureCapStatus[];
+}
+
+export interface GenericSuccessResponse {
+  status: string;
+}
+
+// --- progression ---
+
+export interface ProgressionMe {
+  thesdel_score: number;
+  rank: string;
+  badge_count: number;
+}
+
+export interface BadgePublic {
+  family_id: string;
+  name: string;
+  description: string;
+  icon_key: string;
+  rarity: "common" | "rare" | "epic" | "legendary";
+}
+
+export interface UserBadgePublic {
+  family_id: string;
+  tier: number;
+  awarded_at: string;
+}
+
+// --- streaks ---
+
+export interface StreakPublic {
+  id: string;
+  user_a: string;
+  user_b: string;
+  current_streak: number;
+  last_interaction_at: string | null;
+  status: "pending" | "active";
+}
+
+export interface CheckInResult {
+  current_streak: number;
+  awarded_score: number;
 }

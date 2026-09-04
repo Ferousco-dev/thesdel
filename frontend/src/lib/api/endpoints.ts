@@ -7,16 +7,23 @@ import { apiRequest } from "./client";
 import type {
   AnnouncementPage,
   AnnouncementPublic,
+  BadgePublic,
+  CheckInResult,
   ClassPreview,
   ClassPublic,
+  ClassPublicWithRole,
+  GenericSuccessResponse,
   LifeBlockPublic,
   MembershipPublic,
+  ProgressionMe,
   RegenerateBlockResponse,
   RoutinePublic,
+  StreakPublic,
   StudyBlockPublic,
   TimetableEntryPublic,
   TokenPairResponse,
   UsageStatusResponse,
+  UserBadgePublic,
   UserPublic,
 } from "./types";
 
@@ -54,6 +61,38 @@ export function logout(refreshToken: string) {
   });
 }
 
+export function verifyEmail(token: string) {
+  return apiRequest<GenericSuccessResponse>("/v1/auth/verify-email", {
+    method: "POST",
+    body: { token },
+    auth: false,
+  });
+}
+
+export function resendVerification(email: string) {
+  return apiRequest<GenericSuccessResponse>("/v1/auth/resend-verification", {
+    method: "POST",
+    body: { email },
+    auth: false,
+  });
+}
+
+export function requestPasswordReset(email: string) {
+  return apiRequest<GenericSuccessResponse>("/v1/auth/password-reset/request", {
+    method: "POST",
+    body: { email },
+    auth: false,
+  });
+}
+
+export function confirmPasswordReset(input: { token: string; new_password: string }) {
+  return apiRequest<GenericSuccessResponse>("/v1/auth/password-reset/confirm", {
+    method: "POST",
+    body: input,
+    auth: false,
+  });
+}
+
 // --- users ---
 
 export function getMe() {
@@ -75,6 +114,10 @@ export function joinClass(joinCode: string) {
     method: "POST",
     body: { join_code: joinCode },
   });
+}
+
+export function listMyClasses() {
+  return apiRequest<ClassPublicWithRole[]>("/v1/classes");
 }
 
 export function getClass(classId: string) {
@@ -217,4 +260,64 @@ export function adjustLifeSchedule() {
 
 export function getAiUsage() {
   return apiRequest<UsageStatusResponse>("/v1/usage/ai");
+}
+
+// --- progression ---
+
+export function getMyProgression() {
+  return apiRequest<ProgressionMe>("/v1/progression/me");
+}
+
+export function listBadgeCatalog() {
+  return apiRequest<BadgePublic[]>("/v1/progression/badges");
+}
+
+export function listMyBadges() {
+  return apiRequest<UserBadgePublic[]>("/v1/progression/badges/me");
+}
+
+// --- streaks ---
+
+export function listMyStreaks() {
+  return apiRequest<StreakPublic[]>("/v1/streaks/me");
+}
+
+export function inviteStreak(inviteeUserId: string) {
+  return apiRequest<StreakPublic>("/v1/streaks/invite", {
+    method: "POST",
+    body: { invitee_user_id: inviteeUserId },
+  });
+}
+
+export function acceptStreak(inviterUserId: string) {
+  return apiRequest<StreakPublic>("/v1/streaks/accept", {
+    method: "POST",
+    body: { inviter_user_id: inviterUserId },
+  });
+}
+
+export function checkInStreak(partnerUserId: string) {
+  return apiRequest<CheckInResult>("/v1/streaks/check-in", {
+    method: "POST",
+    body: { partner_user_id: partnerUserId },
+  });
+}
+
+// --- files ---
+
+export interface FileUploadPublic {
+  id: string;
+  content_type: string;
+  size_bytes: number;
+  status: "pending_parse" | "parsing" | "parsed" | "failed";
+  created_at: string;
+}
+
+export function uploadTimetableImport(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return apiRequest<FileUploadPublic>("/v1/files/timetable-import", {
+    method: "POST",
+    body: formData,
+  });
 }

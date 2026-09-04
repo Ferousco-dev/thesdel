@@ -13,6 +13,11 @@ import { CookieSettingsPage } from "./routes/marketing/CookieSettingsPage";
 import { PrivacyPolicyPage } from "./routes/marketing/PrivacyPolicyPage";
 import { SupportPage } from "./routes/marketing/SupportPage";
 import { TermsOfServicePage } from "./routes/marketing/TermsOfServicePage";
+import { RegisterPage } from "./routes/RegisterPage";
+import { ForgotPasswordPage } from "./routes/ForgotPasswordPage";
+import { ResetPasswordPage } from "./routes/ResetPasswordPage";
+import { VerifyEmailPage } from "./routes/VerifyEmailPage";
+import { TimetableImportPage } from "./routes/TimetableImportPage";
 import { ProfilePage } from "./routes/ProfilePage";
 import { RootLayout } from "./routes/RootLayout";
 import { TimetablePage } from "./routes/TimetablePage";
@@ -31,6 +36,10 @@ export function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/support" element={<SupportPage />} />
@@ -42,6 +51,7 @@ export function App() {
           <Route path="/classes" element={<ClassesPage />} />
           <Route path="/litheral" element={<LitheralPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/onboarding/import" element={<TimetableImportPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/timetable" replace />} />
       </Routes>

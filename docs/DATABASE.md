@@ -261,6 +261,33 @@ alone). Unregistering (`DELETE /v1/notifications/devices/{token}`) is
 scoped to `{user_id, token}` so a user can never delete another user's
 token — see docs/SECURITY.md and RULES.md #2/#4.
 
+### `file_uploads` (implemented — `app/files/`)
+```
+_id: ObjectId
+user_id: ObjectId -> users._id
+r2_key: string                   # S3-compatible R2 object path,
+                                  # `timetable-imports/{user_id}/{uuid}.{ext}`
+content_type: string             # "image/jpeg" | "image/png" | "image/webp"
+size_bytes: int
+status: "pending_parse"          # set on upload; no transition to other
+                                  # states in V1 (parsing is deferred,
+                                  # see docs/DECISIONS.md ADR-014)
+created_at: datetime             # used for TTL-based cleanup of abandoned
+                                  # uploads (see app/files/jobs.py)
+```
+**Indexes:** compound `{status, created_at}` (named query pattern: stale
+`pending_parse` records older than ABANDONED_TTL_HOURS, swept by the
+periodic cleanup job; see app/files/jobs.py and ARCHITECTURE.md §8).
+
+**Lifecycle:** uploaded images sit in `pending_parse` status until a
+future LLM-parsing step is implemented (ADR-014 scope boundary). Until
+then, they are either deleted manually via `DELETE /v1/files/timetable-
+import/{file_id}` or garbage-collected by the hourly cleanup job if older
+than ABANDONED_TTL_HOURS (~24h). Both deletion paths clean up both the
+Mongo document and the R2 object atomically from the caller's perspective
+(see app/files/service.py's delete method and app/files/jobs.py's idempotent
+cleanup).
+
 ## 2. Query Patterns and Their Indexes — Summary Table
 
 | Query | Index |
@@ -277,6 +304,7 @@ token — see docs/SECURITY.md and RULES.md #2/#4.
 | Session lookup on refresh | `sessions {user_id}` |
 | Register/re-register a device token (upsert) | `device_tokens {token}` unique |
 | Fan a push out across a user's devices | `device_tokens {user_id}` |
+| Sweep abandoned timetable-import uploads for cleanup | `file_uploads {status, created_at}` |
 
 Every index above exists because it serves a named query pattern in this
 table — no index is added speculatively (per `RULES.md`: never add a

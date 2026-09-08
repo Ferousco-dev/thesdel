@@ -509,3 +509,117 @@ firing on generation rather than on a schedule) would not match the
 actual "study-block reminders" feature and would need to be redone
 anyway. Scoped out per the task's explicit instruction; tracked here as
 the next Litheral-adjacent notifications work.
+
+---
+
+## ADR-014: File upload — storage, validation, re-encoding, cleanup
+
+**Status:** Accepted
+
+**Context:** Timetable-import requires users to upload photos/screenshots of
+a timetable (paper or digital) for an LLM to parse later. This ADR covers
+upload/validate/store/retrieve/delete and garbage collection of the raw
+images, but explicitly does NOT include LLM parsing (see scope boundary
+below).
+
+**Decisions:**
+
+1. **Storage backend: R2 (S3-compatible).** `app/shared/storage.py` wraps
+   `boto3`'s S3 client pointed at Cloudflare R2's S3-compatible endpoint.
+   R2 is already listed in ARCHITECTURE.md §9 and docs/PRIVACY.md §2 as a
+   chosen dependency, making this a no-scope-change decision. Tested/local
+   fallback: `InMemoryStorageClient` (per `app/shared/storage.py` module
+   docstring), not `moto` — 40-line fake is simpler and matches the
+   existing `mongomock`/`fakeredis` test-double pattern, per RULES.md #17.
+   See `app/shared/storage.py` for the implementation.
+
+2. **Validation: MIME allow-list (JPEG/PNG/WEBP only), size cap (8MB),
+   server-side re-encoding.** Per docs/SECURITY.md's file-upload threat
+   row and ARCHITECTURE.md §10:
+   - MIME allow-list: hardcoded to the three formats a
+     timetable-import frontend is expected to produce (photo, screenshot).
+   - Size cap: 8 MiB, enforced in the router before full buffering (read
+     in 1MB chunks, abort if cumulative exceeds cap).
+   - Server-side re-encode: decode then re-encode via Pillow, which strips
+     embedded EXIF/ICC/XMP metadata and trailing polyglot bytes. Defends
+     against image bombs (cap pixel dimensions: 6000x6000 or 36M total px,
+     per `_MAX_PIXEL_DIMENSION` in `app/files/service.py`) and disguised
+     file types (a `text/plain` file claiming to be `.jpg` will fail to
+     decode and be rejected). Never trust client `Content-Type` header.
+   - See `app/files/service.py` for the implementation.
+
+3. **Storage path and record schema.** Uploads are stored in R2 under
+   `timetable-imports/{user_id}/{uuid}.{ext}` (scoped to user, new file
+   per upload, unpredictable name). A `file_uploads` Mongo collection
+   records metadata: user_id, r2_key, content_type, size_bytes,
+   status="pending_parse", created_at. The `pending_parse` status is a
+   placeholder: V1 does not parse these into timetable_entries (see scope
+   boundary below). See `app/files/repository.py` and docs/DATABASE.md
+   `file_uploads` for the full schema and indexes.
+
+4. **Presigned-URL retrieval: 10-minute expiry, user-scoped.** `GET
+   /v1/files/timetable-import/{file_id}` returns a presigned R2 URL with
+   `ExpiresIn=600` (10 minutes). This defeats the "leaked URL is forever
+   useful" attack — a URL captured in logs or a referrer header is
+   worthless after 10 minutes. Ownership is re-verified server-side on
+   every access per RULES.md #4. See `app/files/service.py`'s
+   `get_download_url` for the implementation.
+
+5. **Garbage collection: periodic hourly ARQ job, sweeps records older than
+   24h, deletes both Mongo doc and R2 object atomically.** Per
+   docs/PRIVACY.md §3, "uploaded timetable-import images are deleted after
+   successful parsing, or after a bounded TTL if parsing fails/is
+   abandoned." Since parsing isn't built yet, the TTL-based cleanup is the
+   only deletion path (other than manual user deletion via DELETE endpoint).
+   A bare Mongo TTL index on `created_at` cannot also delete the R2 object
+   — TTL expiry only touches Mongo. Instead, `app/files/jobs.py` defines
+   `cleanup_abandoned_file_uploads`, a cron job registered in `app/worker.py`
+   running hourly. The job is idempotent: re-running against a record
+   already cleaned is a no-op (storage.delete is idempotent per S3/R2
+   semantics, Mongo delete-by-id is also safe to repeat). See
+   `app/files/jobs.py` and ARCHITECTURE.md §8 for the pattern.
+
+6. **Scope boundary: NO LLM parsing in this ADR.** The upload, validation,
+   storage, and retrieval are complete here. Parsing the stored image into
+   timetable_entries is a separate, future feature, per the master prompt's
+   explicit instruction ("R2 upload/validate/re-encode/retrieve for
+   timetable-import images ONLY (no LLM parsing, that's out of scope)").
+   Until parsing is built, uploads sit in `status="pending_parse"` forever
+   (or until deleted). The job, router, service, and repository are all
+   structured to make wiring in the parse step trivial later (see the
+   comment in `app/files/router.py`'s module docstring).
+
+**Alternatives considered:**
+
+- **AWS S3 instead of R2:** rejected, AWS is more expensive and
+  multi-region complication not needed here; R2 is already chosen in
+  ARCHITECTURE.md and PRIVACY.md.
+- **Local filesystem storage:** rejected, complicates deployment
+  (Docker/K8s don't guarantee persistent local disks), backup/restore
+  strategy, and multi-instance serving; R2 solves all three.
+- **Moto for S3 mocking in tests:** rejected per RULES.md #17 — a 40-line
+  `InMemoryStorageClient` is simpler, matches existing test patterns
+  (mongomock, fakeredis), and covers the four operations needed (put, get,
+  delete, presign).
+- **Bare Mongo TTL index for cleanup:** rejected — can't delete R2 object,
+  only Mongo doc. Cleanup job is the only way to enforce the
+  "delete from both systems" invariant.
+
+**Consequences:**
+
+- `boto3` is already in `pyproject.toml` (with a comment explaining the
+  R2-choice rationale in the original dependencies — see commit history or
+  AGENTS.md for context).
+- `pillow` is already in `pyproject.toml` (for image re-encoding).
+- The `file_uploads` collection and indexes are documented in
+  `docs/DATABASE.md` (query pattern: `{status, created_at}` for cleanup).
+- The presigned-URL 10-minute expiry is a documented, revisitable policy
+  choice (see `PRESIGN_EXPIRY_SECONDS` in `app/files/service.py`).
+- The 8 MiB size cap and 6000x6000 pixel dimension bounds are documented
+  and config-drivable (constant definitions in `app/files/service.py` and
+  `app/files/router.py`); they can be tuned post-launch if real usage data
+  suggests different bounds.
+- **Open follow-up (not built here):** the LLM parsing step, which will
+  transition `status` from "pending_parse" to "parsed" or "failed" and
+  write `timetable_entries` — this is explicitly deferred, tracked here so
+  the scope boundary is clear to future implementers.

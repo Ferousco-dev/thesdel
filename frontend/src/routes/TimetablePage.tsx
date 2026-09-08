@@ -81,8 +81,8 @@ export function TimetablePage() {
   const gridEntries = useMemo(() => {
     if (!entries) return [];
     return entries.map((entry) => {
-      const [startH, startM] = entry.start_time.split(":").map(Number);
-      const [endH, endM] = entry.end_time.split(":").map(Number);
+      const [startH = 0, startM = 0] = entry.start_time.split(":").map(Number);
+      const [endH = 0, endM = 0] = entry.end_time.split(":").map(Number);
 
       const startTotal = startH * 60 + startM;
       const endTotal = endH * 60 + endM;

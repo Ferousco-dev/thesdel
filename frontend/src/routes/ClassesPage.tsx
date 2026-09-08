@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { listMyClasses, createClass, joinClass, previewClass } from "../lib/api/endpoints";
-import type { ClassPublic, ClassPublicWithRole, ClassPreview } from "../lib/api/types";
+import { listMyClasses, createClass, joinClass } from "../lib/api/endpoints";
+import type { ClassPublicWithRole } from "../lib/api/types";
 import { isApiError } from "../lib/api/errors";
 import { AnnouncementFeed } from "../components/AnnouncementFeed";
 

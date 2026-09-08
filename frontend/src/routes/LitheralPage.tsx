@@ -19,11 +19,9 @@ export function LitheralPage() {
   const [routines, setRoutines] = useState<RoutinePublic[] | null>(null);
   const [timetableSubjects, setTimetableSubjects] = useState<string[]>([]);
   const [usage, setUsage] = useState<UsageStatusResponse | null>(null);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const fetchData = async () => {
-    setLoading(true);
     try {
       const [sp, tt, usageData] = await Promise.all([
         listStudyPlan(),
@@ -43,8 +41,6 @@ export function LitheralPage() {
       }
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 

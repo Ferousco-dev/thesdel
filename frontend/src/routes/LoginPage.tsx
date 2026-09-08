@@ -13,11 +13,9 @@ import "../styles/auth.css";
 // Tailwind — this screen is part of the authenticated app shell, not the
 // marketing site.
 export function LoginPage() {
-  const { login, register, status } = useAuth();
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const { login, status } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -28,11 +26,7 @@ export function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      if (mode === "login") {
-        await login(email, password);
-      } else {
-        await register(email, password, displayName);
-      }
+      await login(email, password);
     } catch (err) {
       setError(isApiError(err) ? err.message : "Something went wrong.");
     } finally {

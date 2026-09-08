@@ -19,6 +19,11 @@ export function applyThemeMode(mode: ThemeMode): void {
   document.documentElement.setAttribute("data-theme", mode);
 }
 
+export function setAndPersistTheme(mode: ThemeMode): void {
+  applyThemeMode(mode);
+  localStorage.setItem("thesdel-theme", mode);
+}
+
 export function applyAccent(primary: string, primaryDark: string): void {
   document.documentElement.style.setProperty("--color-primary", primary);
   document.documentElement.style.setProperty("--color-primary-dark", primaryDark);

@@ -8,6 +8,7 @@ import type {
   ProgressionMe, UserBadgePublic, BadgePublic, StreakPublic
 } from "../lib/api/types";
 import { isApiError } from "../lib/api/errors";
+import { setAndPersistTheme, type ThemeMode } from "../lib/theme";
 
 export function ProfilePage() {
   const { user, logout } = useAuth();
@@ -16,6 +17,9 @@ export function ProfilePage() {
   const [catalog, setCatalog] = useState<BadgePublic[]>([]);
   const [streaks, setStreaks] = useState<StreakPublic[]>([]);
   const [loading, setLoading] = useState(true);
+  const [theme, setTheme] = useState<ThemeMode>(
+    (document.documentElement.getAttribute("data-theme") as ThemeMode) || "light"
+  );
 
   const fetchData = async () => {
     try {
@@ -162,6 +166,56 @@ export function ProfilePage() {
         <h2 style={{ fontSize: "var(--font-size-h2)", marginBottom: "0.5rem" }}>Activity</h2>
         <div style={{ height: "100px", background: "var(--color-surface)", borderRadius: "var(--radius-md)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-secondary)", fontSize: "var(--font-size-caption)" }}>
           Activity Heatmap Placeholder (§7.2)
+        </div>
+      </section>
+
+      {/* Theme Settings */}
+      <section>
+        <h2 style={{ fontSize: "var(--font-size-h2)", marginBottom: "1rem" }}>Preferences</h2>
+        <div style={{ display: "grid", gap: "1rem" }}>
+          <div style={{ padding: "1rem", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", background: "var(--color-surface)" }}>
+            <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
+              <span style={{ fontWeight: 500 }}>Theme</span>
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAndPersistTheme("light");
+                    setTheme("light");
+                  }}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    border: `2px solid ${theme === "light" ? "var(--color-primary)" : "var(--color-border)"}`,
+                    borderRadius: "var(--radius-sm)",
+                    background: theme === "light" ? "rgba(232, 89, 12, 0.1)" : "transparent",
+                    color: theme === "light" ? "var(--color-primary)" : "var(--color-text-secondary)",
+                    cursor: "pointer",
+                    fontWeight: theme === "light" ? 600 : 400,
+                  }}
+                >
+                  ☀️ Light
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAndPersistTheme("dark");
+                    setTheme("dark");
+                  }}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    border: `2px solid ${theme === "dark" ? "var(--color-primary)" : "var(--color-border)"}`,
+                    borderRadius: "var(--radius-sm)",
+                    background: theme === "dark" ? "rgba(232, 89, 12, 0.1)" : "transparent",
+                    color: theme === "dark" ? "var(--color-primary)" : "var(--color-text-secondary)",
+                    cursor: "pointer",
+                    fontWeight: theme === "dark" ? 600 : 400,
+                  }}
+                >
+                  🌙 Dark
+                </button>
+              </div>
+            </label>
+          </div>
         </div>
       </section>
 

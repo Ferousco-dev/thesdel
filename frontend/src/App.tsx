@@ -26,9 +26,19 @@ export function App() {
   useEffect(() => {
     // Frontend Spec §6.4: light/dark is available to every tier, defaults
     // to the OS preference until a settings screen lets the user override
-    // it. TODO: persist the user's explicit choice once that screen exists.
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    applyThemeMode(prefersDark ? "dark" : "light");
+    // it. Persisted in localStorage so user's explicit choice is remembered.
+    const savedTheme = localStorage.getItem("thesdel-theme");
+    let themeToApply: "light" | "dark";
+
+    if (savedTheme === "light" || savedTheme === "dark") {
+      themeToApply = savedTheme;
+    } else {
+      // Fall back to OS preference if no saved preference
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      themeToApply = prefersDark ? "dark" : "light";
+    }
+
+    applyThemeMode(themeToApply);
   }, []);
 
   return (

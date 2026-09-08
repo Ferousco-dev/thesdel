@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
 import { App } from "./App";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import "./styles/theme.css";
 
 const rootElement = document.getElementById("root");
@@ -10,8 +11,10 @@ if (!rootElement) throw new Error("#root element not found");
 
 createRoot(rootElement).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
 );

@@ -93,6 +93,14 @@ export function confirmPasswordReset(input: { token: string; new_password: strin
   });
 }
 
+export function refreshToken(refreshToken: string) {
+  return apiRequest<TokenPairResponse>("/v1/auth/refresh", {
+    method: "POST",
+    body: { refresh_token: refreshToken },
+    auth: false,
+  });
+}
+
 // --- users ---
 
 export function getMe() {
@@ -282,6 +290,10 @@ export function listMyStreaks() {
   return apiRequest<StreakPublic[]>("/v1/streaks/me");
 }
 
+export function getStreakWithPartner(partnerUserId: string) {
+  return apiRequest<StreakPublic>(`/v1/streaks/${partnerUserId}`);
+}
+
 export function inviteStreak(inviteeUserId: string) {
   return apiRequest<StreakPublic>("/v1/streaks/invite", {
     method: "POST",
@@ -313,11 +325,46 @@ export interface FileUploadPublic {
   created_at: string;
 }
 
+export interface FileDownloadUrl {
+  download_url: string;
+}
+
 export function uploadTimetableImport(file: File) {
   const formData = new FormData();
   formData.append("file", file);
   return apiRequest<FileUploadPublic>("/v1/files/timetable-import", {
     method: "POST",
     body: formData,
+  });
+}
+
+export function getTimetableImportUrl(fileId: string) {
+  return apiRequest<FileDownloadUrl>(`/v1/files/timetable-import/${fileId}`);
+}
+
+export function deleteTimetableImport(fileId: string) {
+  return apiRequest<void>(`/v1/files/timetable-import/${fileId}`, {
+    method: "DELETE",
+  });
+}
+
+// --- notifications ---
+
+export interface DeviceTokenPublic {
+  token: string;
+  platform: string;
+  created_at: string;
+}
+
+export function registerDeviceToken(token: string, platform: string) {
+  return apiRequest<DeviceTokenPublic>("/v1/notifications/devices", {
+    method: "POST",
+    body: { token, platform },
+  });
+}
+
+export function unregisterDeviceToken(token: string) {
+  return apiRequest<void>(`/v1/notifications/devices/${encodeURIComponent(token)}`, {
+    method: "DELETE",
   });
 }

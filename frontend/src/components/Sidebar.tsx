@@ -1,26 +1,30 @@
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
+import { Menu, X, Calendar, BookOpen, Sparkles, User } from "lucide-react";
 import { useAuth } from "../lib/auth/useAuth";
 
 const TABS = [
-  { to: "/timetable", label: "Timetable", icon: "📅" },
-  { to: "/classes", label: "Classes", icon: "📚" },
-  { to: "/litheral", label: "Litheral", icon: "✨" },
-  { to: "/profile", label: "Profile", icon: "👤" },
+  { to: "/timetable", label: "Timetable", Icon: Calendar },
+  { to: "/classes", label: "Classes", Icon: BookOpen },
+  { to: "/litheral", label: "Litheral", Icon: Sparkles },
+  { to: "/profile", label: "Profile", Icon: User },
 ];
 
 export function Sidebar() {
   const { user } = useAuth();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <nav
       style={{
-        width: "260px",
+        width: isCollapsed ? "80px" : "260px",
         backgroundColor: "var(--color-surface)",
         borderRight: "1px solid var(--color-border)",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
         boxShadow: "inset -1px 0 0 rgba(0,0,0,0.05)",
+        transition: "width 0.3s ease",
       }}
     >
       {/* Logo/Brand */}
@@ -30,6 +34,7 @@ export function Sidebar() {
           borderBottom: "1px solid var(--color-border)",
           display: "flex",
           alignItems: "center",
+          justifyContent: isCollapsed ? "center" : "space-between",
           gap: "0.75rem",
         }}
       >
@@ -45,16 +50,36 @@ export function Sidebar() {
             fontWeight: "bold",
             color: "white",
             fontSize: "20px",
+            flexShrink: 0,
           }}
         >
-          🎓
+          T
         </div>
-        <div>
-          <div style={{ fontWeight: 600, fontSize: "14px" }}>Thesdel</div>
-          <div style={{ fontSize: "12px", color: "var(--color-text-secondary)" }}>
-            {user?.tier || "free"}
+        {!isCollapsed && (
+          <div>
+            <div style={{ fontWeight: 600, fontSize: "14px" }}>Thesdel</div>
+            <div style={{ fontSize: "12px", color: "var(--color-text-secondary)" }}>
+              {user?.tier || "free"}
+            </div>
           </div>
-        </div>
+        )}
+        <button
+          type="button"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: "0.25rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "var(--color-text-secondary)",
+          }}
+          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isCollapsed ? <Menu size={18} /> : <X size={18} />}
+        </button>
       </div>
 
       {/* Navigation Links */}
@@ -66,8 +91,9 @@ export function Sidebar() {
             style={({ isActive }) => ({
               display: "flex",
               alignItems: "center",
+              justifyContent: isCollapsed ? "center" : "flex-start",
               gap: "0.75rem",
-              padding: "0.75rem 1rem",
+              padding: isCollapsed ? "0.75rem" : "0.75rem 1rem",
               marginBottom: "0.25rem",
               borderRadius: "8px",
               textDecoration: "none",
@@ -88,9 +114,10 @@ export function Sidebar() {
                 e.currentTarget.style.backgroundColor = "transparent";
               }
             }}
+            title={isCollapsed ? tab.label : undefined}
           >
-            <span style={{ fontSize: "18px" }}>{tab.icon}</span>
-            <span>{tab.label}</span>
+            <tab.Icon size={20} style={{ flexShrink: 0 }} />
+            {!isCollapsed && <span>{tab.label}</span>}
           </NavLink>
         ))}
       </div>
@@ -102,6 +129,7 @@ export function Sidebar() {
           padding: "1rem 1.25rem",
           display: "flex",
           alignItems: "center",
+          justifyContent: isCollapsed ? "center" : "flex-start",
           gap: "0.75rem",
           fontSize: "13px",
         }}
@@ -119,24 +147,27 @@ export function Sidebar() {
             fontWeight: "600",
             flexShrink: 0,
           }}
+          title={isCollapsed ? user?.display_name : undefined}
         >
           {user?.display_name?.[0]?.toUpperCase() || "?"}
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              fontWeight: 500,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {user?.display_name}
+        {!isCollapsed && (
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                fontWeight: 500,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {user?.display_name}
+            </div>
+            <div style={{ color: "var(--color-text-secondary)", fontSize: "12px" }}>
+              {user?.email}
+            </div>
           </div>
-          <div style={{ color: "var(--color-text-secondary)", fontSize: "12px" }}>
-            {user?.email}
-          </div>
-        </div>
+        )}
       </div>
     </nav>
   );

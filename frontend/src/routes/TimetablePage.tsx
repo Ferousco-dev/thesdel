@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { Calendar } from "lucide-react";
 
 import {
   listMyTimetable,
@@ -118,7 +119,9 @@ export function TimetablePage() {
       <div style={{ flex: 1, overflow: "auto", position: "relative" }}>
         {entries.length === 0 ? (
           <div style={{ padding: "6rem 3rem", textAlign: "center", border: "2px dashed var(--color-border)", borderRadius: "var(--radius-lg)", backgroundColor: "var(--color-bg)" }}>
-            <div style={{ fontSize: "48px", marginBottom: "1rem" }}>📅</div>
+            <div style={{ marginBottom: "1rem", display: "flex", justifyContent: "center" }}>
+              <Calendar size={48} color="var(--color-text-secondary)" />
+            </div>
             <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: "0.5rem" }}>No classes yet</h2>
             <p style={{ color: "var(--color-text-secondary)", marginBottom: "2rem", maxWidth: "400px", margin: "0 auto 2rem" }}>
               Create your first class to start building your timetable and track your schedule.

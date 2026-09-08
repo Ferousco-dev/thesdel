@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { BookOpen } from "lucide-react";
 import { listMyClasses, createClass, joinClass } from "../lib/api/endpoints";
 import type { ClassPublicWithRole } from "../lib/api/types";
 import { isApiError } from "../lib/api/errors";
@@ -121,7 +122,9 @@ export function ClassesPage() {
       <div style={{ display: "grid", gap: "1rem" }}>
         {classes.length === 0 ? (
           <div style={{ padding: "6rem 3rem", textAlign: "center", border: "2px dashed var(--color-border)", borderRadius: "var(--radius-lg)", backgroundColor: "var(--color-bg)" }}>
-            <div style={{ fontSize: "48px", marginBottom: "1rem" }}>📚</div>
+            <div style={{ marginBottom: "1rem", display: "flex", justifyContent: "center" }}>
+              <BookOpen size={48} color="var(--color-text-secondary)" />
+            </div>
             <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: "0.5rem" }}>No classes yet</h2>
             <p style={{ color: "var(--color-text-secondary)", marginBottom: "2rem", maxWidth: "400px", margin: "0 auto 2rem" }}>
               Create a new class or join an existing one using a join code to get started.

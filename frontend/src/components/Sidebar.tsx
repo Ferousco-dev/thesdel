@@ -20,6 +20,7 @@ export function Sidebar() {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
+        boxShadow: "inset -1px 0 0 rgba(0,0,0,0.05)",
       }}
     >
       {/* Logo/Brand */}
@@ -73,10 +74,20 @@ export function Sidebar() {
               color: isActive ? "white" : "var(--color-text)",
               backgroundColor: isActive ? "var(--color-primary)" : "transparent",
               cursor: "pointer",
-              transition: "all 0.2s ease",
+              transition: "all 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
               fontSize: "14px",
               fontWeight: isActive ? "600" : "500",
             })}
+            onMouseEnter={(e) => {
+              if (!e.currentTarget.style.backgroundColor.includes("var(--color-primary)")) {
+                e.currentTarget.style.backgroundColor = "rgba(232, 89, 12, 0.08)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!e.currentTarget.style.backgroundColor.includes("var(--color-primary)")) {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }
+            }}
           >
             <span style={{ fontSize: "18px" }}>{tab.icon}</span>
             <span>{tab.label}</span>

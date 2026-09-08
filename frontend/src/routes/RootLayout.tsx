@@ -17,12 +17,13 @@ export function RootLayout() {
         <header
           style={{
             borderBottom: "1px solid var(--color-border)",
-            padding: "1rem 1.5rem",
+            padding: "0.875rem 1.5rem",
             display: "flex",
             justifyContent: "flex-end",
             alignItems: "center",
             gap: "1rem",
             backgroundColor: "var(--color-surface)",
+            boxShadow: "0 1px 0 rgba(0,0,0,0.05)",
           }}
         >
           {user && <NotificationCenter userId={user.id} />}

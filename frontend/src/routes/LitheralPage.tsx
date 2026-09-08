@@ -92,13 +92,14 @@ export function LitheralPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <div style={{ borderBottom: "1px solid var(--color-border)", display: "flex" }}>
+      <div style={{ borderBottom: "1px solid var(--color-border)", display: "flex", paddingX: "3rem" }}>
         <button
           onClick={() => setTab("study")}
           style={{
-            flex: 1, padding: "1rem", border: "none", background: "none",
-            borderBottom: tab === "study" ? "2px solid var(--color-primary)" : "none",
-            fontWeight: tab === "study" ? 600 : 400, color: tab === "study" ? "var(--color-primary)" : "inherit"
+            flex: 1, padding: "1.25rem 1.5rem", border: "none", background: "none",
+            borderBottom: tab === "study" ? "3px solid var(--color-primary)" : "none",
+            fontWeight: tab === "study" ? 600 : 500, color: tab === "study" ? "var(--color-primary)" : "inherit",
+            fontSize: "15px", cursor: "pointer"
           }}
         >
           Study Plan
@@ -106,16 +107,17 @@ export function LitheralPage() {
         <button
           onClick={() => setTab("life")}
           style={{
-            flex: 1, padding: "1rem", border: "none", background: "none",
-            borderBottom: tab === "life" ? "2px solid var(--color-primary)" : "none",
-            fontWeight: tab === "life" ? 600 : 400, color: tab === "life" ? "var(--color-primary)" : "inherit"
+            flex: 1, padding: "1.25rem 1.5rem", border: "none", background: "none",
+            borderBottom: tab === "life" ? "3px solid var(--color-primary)" : "none",
+            fontWeight: tab === "life" ? 600 : 500, color: tab === "life" ? "var(--color-primary)" : "inherit",
+            fontSize: "15px", cursor: "pointer"
           }}
         >
           Life Organizer
         </button>
       </div>
 
-      <div style={{ flex: 1, overflow: "auto", padding: "1.5rem" }}>
+      <div style={{ flex: 1, overflow: "auto", padding: "2rem 3rem" }}>
         {tab === "study" ? (
           <TierGate requiredTier="premium" upgradePrompt={<UpgradePrompt requiredTier="premium" />}>
             <div>

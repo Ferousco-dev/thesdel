@@ -97,12 +97,17 @@ export function TimetablePage() {
     });
   }, [entries]);
 
-  if (entries === null) return <div style={{ padding: "2rem" }}>Loading…</div>;
+  if (entries === null) return <div style={{ padding: "3rem" }}>Loading…</div>;
 
   return (
-    <div style={{ padding: "1rem", height: "100%", display: "flex", flexDirection: "column" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-        <h1 style={{ fontSize: "var(--font-size-h1)", margin: 0 }}>Timetable</h1>
+    <div style={{ padding: "2rem 3rem", height: "100%", display: "flex", flexDirection: "column" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+        <div>
+          <h1 style={{ fontSize: "var(--font-size-h1)", margin: 0, marginBottom: "0.5rem" }}>Timetable</h1>
+          <p style={{ color: "var(--color-text-secondary)", margin: 0, fontSize: "14px" }}>
+            Organize your classes and study sessions
+          </p>
+        </div>
         <button type="button" className="btn btn--primary" onClick={handleOpenAdd}>
           + Add Class
         </button>
@@ -112,9 +117,13 @@ export function TimetablePage() {
 
       <div style={{ flex: 1, overflow: "auto", position: "relative" }}>
         {entries.length === 0 ? (
-          <div style={{ padding: "4rem 2rem", textAlign: "center", border: "2px dashed var(--color-border)", borderRadius: "var(--radius-lg)" }}>
-            <p style={{ color: "var(--color-text-secondary)", marginBottom: "1.5rem" }}>Your timetable is empty.</p>
-            <button type="button" className="btn btn--ghost" onClick={handleOpenAdd}>Create your first class</button>
+          <div style={{ padding: "6rem 3rem", textAlign: "center", border: "2px dashed var(--color-border)", borderRadius: "var(--radius-lg)", backgroundColor: "var(--color-bg)" }}>
+            <div style={{ fontSize: "48px", marginBottom: "1rem" }}>📅</div>
+            <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: "0.5rem" }}>No classes yet</h2>
+            <p style={{ color: "var(--color-text-secondary)", marginBottom: "2rem", maxWidth: "400px", margin: "0 auto 2rem" }}>
+              Create your first class to start building your timetable and track your schedule.
+            </p>
+            <button type="button" className="btn btn--primary" onClick={handleOpenAdd}>Create your first class</button>
           </div>
         ) : (
           <div

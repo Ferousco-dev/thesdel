@@ -62,10 +62,10 @@ export function ProfilePage() {
     }
   }
 
-  if (loading) return <div style={{ padding: "2rem" }}>Loading…</div>;
+  if (loading) return <div style={{ padding: "3rem" }}>Loading…</div>;
 
   return (
-    <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "2rem" }}>
+    <div style={{ padding: "2rem 3rem", display: "flex", flexDirection: "column", gap: "2rem" }}>
       {/* Header & Stats */}
       <section style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>

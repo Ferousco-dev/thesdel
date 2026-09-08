@@ -53,16 +53,16 @@ export function ClassesPage() {
 
   const selectedClass = classes?.find(c => c.id === selectedClassId);
 
-  if (classes === null) return <div style={{ padding: "2rem" }}>Loading…</div>;
+  if (classes === null) return <div style={{ padding: "3rem" }}>Loading…</div>;
 
   if (selectedClass) {
     return (
-      <div style={{ padding: "1rem", height: "100%", display: "flex", flexDirection: "column" }}>
-        <button type="button" className="btn btn--text" onClick={() => setSelectedClassId(null)} style={{ alignSelf: "flex-start", marginBottom: "1rem" }}>
+      <div style={{ padding: "2rem 3rem", height: "100%", display: "flex", flexDirection: "column" }}>
+        <button type="button" className="btn btn--text" onClick={() => setSelectedClassId(null)} style={{ alignSelf: "flex-start", marginBottom: "1.5rem" }}>
           ← Back to classes
         </button>
         <h1 style={{ fontSize: "var(--font-size-h1)", marginBottom: "0.5rem" }}>{selectedClass.name}</h1>
-        <div style={{ fontSize: "var(--font-size-caption)", color: "var(--color-text-secondary)", marginBottom: "1.5rem" }}>
+        <div style={{ fontSize: "var(--font-size-caption)", color: "var(--color-text-secondary)", marginBottom: "2rem" }}>
           Join Code: <span className="tabular-nums" style={{ fontWeight: 600, color: "var(--color-text-primary)" }}>{selectedClass.join_code}</span>
           {" · "}
           Role: <span style={{ textTransform: "capitalize" }}>{selectedClass.role}</span>
@@ -74,9 +74,14 @@ export function ClassesPage() {
   }
 
   return (
-    <div style={{ padding: "1rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-        <h1 style={{ fontSize: "var(--font-size-h1)", margin: 0 }}>Classes</h1>
+    <div style={{ padding: "2rem 3rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "2rem" }}>
+        <div>
+          <h1 style={{ fontSize: "var(--font-size-h1)", margin: 0, marginBottom: "0.5rem" }}>Classes</h1>
+          <p style={{ color: "var(--color-text-secondary)", margin: 0, fontSize: "14px" }}>
+            Join or create classes to collaborate with classmates
+          </p>
+        </div>
         <div style={{ display: "flex", gap: "0.5rem" }}>
           <button type="button" className="btn btn--ghost" onClick={() => setView("join")}>Join</button>
           <button type="button" className="btn btn--primary" onClick={() => setView("create")}>+ New</button>
@@ -115,7 +120,17 @@ export function ClassesPage() {
 
       <div style={{ display: "grid", gap: "1rem" }}>
         {classes.length === 0 ? (
-          <p style={{ color: "var(--color-text-secondary)", textAlign: "center", padding: "2rem" }}>You haven't joined any classes yet.</p>
+          <div style={{ padding: "6rem 3rem", textAlign: "center", border: "2px dashed var(--color-border)", borderRadius: "var(--radius-lg)", backgroundColor: "var(--color-bg)" }}>
+            <div style={{ fontSize: "48px", marginBottom: "1rem" }}>📚</div>
+            <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: "0.5rem" }}>No classes yet</h2>
+            <p style={{ color: "var(--color-text-secondary)", marginBottom: "2rem", maxWidth: "400px", margin: "0 auto 2rem" }}>
+              Create a new class or join an existing one using a join code to get started.
+            </p>
+            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
+              <button type="button" className="btn btn--ghost" onClick={() => setView("join")}>Join a class</button>
+              <button type="button" className="btn btn--primary" onClick={() => setView("create")}>Create new</button>
+            </div>
+          </div>
         ) : (
           classes.map(c => (
             <button

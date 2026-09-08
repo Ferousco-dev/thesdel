@@ -12,6 +12,7 @@ router = APIRouter(prefix="/v1/usage", tags=["usage"])
 
 @router.get("/ai", response_model=UsageStatusResponse)
 async def get_ai_usage(user: CurrentUserDep) -> UsageStatusResponse:
+    """Get AI feature usage and limits for the authenticated user."""
     settings = get_settings()
     service = AiUsageService(get_db(), get_redis())
 

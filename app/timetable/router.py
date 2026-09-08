@@ -14,6 +14,7 @@ def _service() -> TimetableService:
 
 @router.get("/timetable", response_model=list[TimetableEntryPublic])
 async def list_my_timetable(user: CurrentUserDep) -> list[TimetableEntryPublic]:
+    """Get the authenticated user's personal timetable entries."""
     return await _service().list_personal(user_id=user.id)
 
 
@@ -21,6 +22,7 @@ async def list_my_timetable(user: CurrentUserDep) -> list[TimetableEntryPublic]:
 async def create_my_timetable_entry(
     body: TimetableEntryCreate, user: CurrentUserDep
 ) -> TimetableEntryPublic:
+    """Create a new personal timetable entry."""
     return await _service().create_personal_entry(user_id=user.id, body=body)
 
 
@@ -28,11 +30,13 @@ async def create_my_timetable_entry(
 async def update_my_timetable_entry(
     entry_id: str, body: TimetableEntryUpdate, user: CurrentUserDep
 ) -> TimetableEntryPublic:
+    """Update a personal timetable entry."""
     return await _service().update_personal_entry(user_id=user.id, entry_id=entry_id, body=body)
 
 
 @router.delete("/timetable/{entry_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_my_timetable_entry(entry_id: str, user: CurrentUserDep) -> None:
+    """Delete a personal timetable entry."""
     await _service().delete_personal_entry(user_id=user.id, entry_id=entry_id)
 
 
@@ -40,6 +44,7 @@ async def delete_my_timetable_entry(entry_id: str, user: CurrentUserDep) -> None
 async def list_class_timetable(
     class_id: str, membership: ClassMembershipDep
 ) -> list[TimetableEntryPublic]:
+    """Get timetable entries for a class."""
     return await _service().list_class(class_id=class_id)
 
 
@@ -51,4 +56,5 @@ async def list_class_timetable(
 async def create_class_timetable_entry(
     class_id: str, body: TimetableEntryCreate, rep: ClassRepDep
 ) -> TimetableEntryPublic:
+    """Create a new timetable entry for a class."""
     return await _service().create_class_entry(class_id=class_id, body=body)

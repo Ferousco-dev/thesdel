@@ -20,26 +20,31 @@ def _service() -> StreakService:
 
 @router.post("/invite", response_model=StreakPublic, status_code=status.HTTP_201_CREATED)
 async def invite_streak(body: StreakInviteRequest, user: CurrentUserDep) -> StreakPublic:
+    """Invite another user to start a streak."""
     return await _service().invite(current_user_id=user.id, invitee_user_id=body.invitee_user_id)
 
 
 @router.post("/accept", response_model=StreakPublic)
 async def accept_streak(body: StreakAcceptRequest, user: CurrentUserDep) -> StreakPublic:
+    """Accept a streak invitation from another user."""
     return await _service().accept(current_user_id=user.id, inviter_user_id=body.inviter_user_id)
 
 
 @router.post("/check-in", response_model=CheckInResult)
 async def check_in(body: StreakCheckInRequest, user: CurrentUserDep) -> CheckInResult:
+    """Check in to a streak with a partner."""
     return await _service().check_in(current_user_id=user.id, partner_user_id=body.partner_user_id)
 
 
 @router.get("/me", response_model=list[StreakPublic])
 async def list_my_streaks(user: CurrentUserDep) -> list[StreakPublic]:
+    """List all streaks for the authenticated user."""
     return await _service().list_my_streaks(current_user_id=user.id)
 
 
 @router.get("/{partner_user_id}", response_model=StreakPublic)
 async def get_streak_with_partner(partner_user_id: str, user: CurrentUserDep) -> StreakPublic:
+    """Get streak information with a specific partner."""
     return await _service().get_with_partner(
         current_user_id=user.id, partner_user_id=partner_user_id
     )

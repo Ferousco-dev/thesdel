@@ -21,14 +21,17 @@ def _service() -> LitheralLifeService:
 async def generate_life_schedule(
     user: CurrentUser = Depends(_require_pro),
 ) -> list[LifeBlockPublic]:
+    """Generate an AI-powered daily life schedule."""
     return await _service().generate(user_id=user.id)
 
 
 @router.get("", response_model=list[LifeBlockPublic])
 async def list_life_schedule(user: CurrentUser = Depends(_require_pro)) -> list[LifeBlockPublic]:
+    """Get the authenticated user's life schedule blocks."""
     return await _service().list_blocks(user_id=user.id)
 
 
 @router.post("/adjust", response_model=list[LifeBlockPublic])
 async def adjust_life_schedule(user: CurrentUser = Depends(_require_pro)) -> list[LifeBlockPublic]:
+    """Adjust the life schedule based on user feedback."""
     return await _service().adjust(user_id=user.id)

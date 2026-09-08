@@ -15,6 +15,7 @@ def _service() -> NotificationService:
 
 @router.post("/devices", response_model=DeviceTokenPublic, status_code=status.HTTP_201_CREATED)
 async def register_device(body: DeviceTokenRegister, user: CurrentUserDep) -> DeviceTokenPublic:
+    """Register a device token for push notifications."""
     # Self-scoped: user_id always comes from the verified current-user
     # dependency, never from the request body — RULES.md #2.
     return await _service().register_device(
@@ -24,4 +25,5 @@ async def register_device(body: DeviceTokenRegister, user: CurrentUserDep) -> De
 
 @router.delete("/devices/{token}", status_code=status.HTTP_204_NO_CONTENT)
 async def unregister_device(token: str, user: CurrentUserDep) -> None:
+    """Unregister a device token and stop push notifications."""
     await _service().unregister_device(user_id=user.id, token=token)

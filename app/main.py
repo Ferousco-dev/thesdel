@@ -77,10 +77,12 @@ def create_app() -> FastAPI:
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
+        """Health check endpoint."""
         return {"status": "ok"}
 
     @app.get("/readyz")
     async def readyz() -> JSONResponse:
+        """Readiness check endpoint that verifies dependencies are healthy."""
         mongo_ok = await db.ping()
         redis_ok = await redis_client.ping()
         ok = mongo_ok and redis_ok

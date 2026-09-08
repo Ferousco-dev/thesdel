@@ -19,6 +19,7 @@ def _service() -> ProgressionService:
 
 @router.get("/me", response_model=ProgressionMe)
 async def get_my_progression(user: CurrentUserDep) -> ProgressionMe:
+    """Get the authenticated user's progression and score information."""
     # Self-scoped: the current user is always resolved from the verified
     # JWT-authenticated dependency, never from a client-supplied user_id —
     # RULES.md #2.
@@ -27,6 +28,7 @@ async def get_my_progression(user: CurrentUserDep) -> ProgressionMe:
 
 @router.get("/badges", response_model=list[BadgePublic])
 async def list_badge_catalog(user: CurrentUserDep) -> list[BadgePublic]:
+    """Get the catalog of all available badges."""
     # Informational catalog, not self-scoped data — still requires auth so
     # it isn't a public unauthenticated endpoint.
     return await _service().list_badge_catalog()
@@ -34,4 +36,5 @@ async def list_badge_catalog(user: CurrentUserDep) -> list[BadgePublic]:
 
 @router.get("/badges/me", response_model=list[UserBadgePublic])
 async def list_my_badges(user: CurrentUserDep) -> list[UserBadgePublic]:
+    """Get the authenticated user's earned badges."""
     return await _service().list_badges_for_user(user_id=user.id)

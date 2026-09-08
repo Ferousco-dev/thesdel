@@ -8,4 +8,5 @@ router = APIRouter(prefix="/v1/users", tags=["users"])
 
 @router.get("/me", response_model=UserPublic)
 async def get_me(user: CurrentUserDep) -> UserPublic:
+    """Get the authenticated user's profile information."""
     return UserPublic(id=user.id, email=user.email, display_name=user.display_name, tier=user.tier)

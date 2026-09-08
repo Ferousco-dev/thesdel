@@ -21,6 +21,7 @@ async def list_announcements(
     membership: ClassMembershipDep,
     cursor: str | None = Query(default=None),
 ) -> AnnouncementPage:
+    """Get paginated announcements feed for a class."""
     return await _service().list_feed(class_id=class_id, cursor=cursor)
 
 
@@ -28,6 +29,7 @@ async def list_announcements(
 async def post_announcement(
     class_id: str, body: AnnouncementCreate, rep: ClassRepDep
 ) -> AnnouncementPublic:
+    """Post a new class announcement."""
     settings = get_settings()
     await check_rate_limit(
         get_redis(),
@@ -43,6 +45,7 @@ async def post_announcement(
 async def update_announcement(
     class_id: str, announcement_id: str, body: AnnouncementUpdate, rep: ClassRepDep
 ) -> AnnouncementPublic:
+    """Update announcement content or pin status."""
     return await _service().update(
         announcement_id=announcement_id, content=body.content, pinned=body.pinned
     )

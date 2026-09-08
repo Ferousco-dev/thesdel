@@ -28,6 +28,7 @@ async def generate_study_plan(
     body: GenerateStudyPlanRequest,
     user: CurrentUser = Depends(_require_premium),
 ) -> list[StudyBlockPublic]:
+    """Generate an AI-powered study plan."""
     return await _service().generate(user_id=user.id, body=body)
 
 
@@ -35,6 +36,7 @@ async def generate_study_plan(
 async def list_study_plan(
     user: CurrentUser = Depends(_require_premium),
 ) -> list[StudyBlockPublic]:
+    """Get the authenticated user's study plan blocks."""
     return await _service().list_blocks(user_id=user.id)
 
 
@@ -43,4 +45,5 @@ async def regenerate_block(
     block_id: str,
     user: CurrentUser = Depends(_require_premium),
 ) -> RegenerateBlockResponse:
+    """Regenerate a study plan block with different content."""
     return await _service().regenerate_block(user_id=user.id, block_id=block_id)

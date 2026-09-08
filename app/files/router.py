@@ -28,6 +28,7 @@ def _service() -> FileService:
     status_code=status.HTTP_201_CREATED,
 )
 async def upload_timetable_import(file: UploadFile, user: CurrentUserDep) -> FileUploadPublic:
+    """Upload a timetable import image file."""
     # Read up to the cap + 1 byte so an oversized upload is rejected
     # without buffering the whole (potentially huge) body first —
     # docs/SECURITY.md's file-upload threat row ("size cap enforced before
@@ -51,9 +52,11 @@ async def upload_timetable_import(file: UploadFile, user: CurrentUserDep) -> Fil
 
 @router.get("/timetable-import/{file_id}", response_model=FileDownloadUrl)
 async def get_timetable_import_url(file_id: str, user: CurrentUserDep) -> FileDownloadUrl:
+    """Get a download URL for an uploaded timetable import file."""
     return await _service().get_download_url(user_id=user.id, file_id=file_id)
 
 
 @router.delete("/timetable-import/{file_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_timetable_import(file_id: str, user: CurrentUserDep) -> None:
+    """Delete an uploaded timetable import file."""
     await _service().delete(user_id=user.id, file_id=file_id)

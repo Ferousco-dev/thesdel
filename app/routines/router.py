@@ -18,11 +18,13 @@ def _service() -> RoutineService:
 async def create_routine(
     body: RoutineCreate, user: CurrentUser = Depends(_require_pro)
 ) -> RoutinePublic:
+    """Create a new routine."""
     return await _service().create(user_id=user.id, body=body)
 
 
 @router.get("", response_model=list[RoutinePublic])
 async def list_routines(user: CurrentUser = Depends(_require_pro)) -> list[RoutinePublic]:
+    """List all routines for the authenticated user."""
     return await _service().list_for_user(user_id=user.id)
 
 
@@ -30,9 +32,11 @@ async def list_routines(user: CurrentUser = Depends(_require_pro)) -> list[Routi
 async def update_routine(
     routine_id: str, body: RoutineUpdate, user: CurrentUser = Depends(_require_pro)
 ) -> RoutinePublic:
+    """Update an existing routine."""
     return await _service().update(user_id=user.id, routine_id=routine_id, body=body)
 
 
 @router.delete("/{routine_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_routine(routine_id: str, user: CurrentUser = Depends(_require_pro)) -> None:
+    """Delete a routine."""
     await _service().delete(user_id=user.id, routine_id=routine_id)
